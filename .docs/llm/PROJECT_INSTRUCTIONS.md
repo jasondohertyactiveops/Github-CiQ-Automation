@@ -272,6 +272,11 @@ public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
 
 Ready to begin project setup and test implementation.
 
+### Additional Documentation
+- **WORKFLOW.md** - How to work together (fetch → generate → run → fix → commit cycle)
+- **PATTERNS.md** - Code examples and reference implementations
+- **RATIONALE.md** - Why we made these decisions (for consistency and future decisions)
+
 ---
 
 ## Project Structure
