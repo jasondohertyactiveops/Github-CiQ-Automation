@@ -46,21 +46,53 @@ Automated Playwright .NET tests generated from Azure DevOps manual test cases.
   - Do NOT use `[Trait("TestCase", "2813")]` - creates useless filtering (all IDs unique) 
 
 **Q5: Test method names - Mirror Azure test case titles exactly, or C#-friendly sanitized versions?**
-- Answer: 
+- Answer: **C#-friendly sanitized (PascalCase)**
+  - Remove unnecessary words: "Verify that", "Check that", "Ensure"
+  - Example: Azure title "Verify that the Login screen shows as expected" → `LoginScreenShowsAsExpected()`
+  - Follow .NET naming conventions
+  - Still traceable via Azure ID in class comment 
 
 ### Azure DevOps Integration
 **Q6: Linking - Should test classes/methods include attributes or comments with the Azure test case ID?**
-- Answer: 
+- Answer: **XML summary comment only**
+  - Azure Test Case ID and title in class-level XML comment (already decided in Q4)
+  - No additional attributes or inline comments needed
+  - Traceability maintained via PR links to Azure test case work items
+  - Example: PR automating TC2813 links to work item #2813 in Azure DevOps
 
 **Q7: Traceability - Any specific format for linking back to Azure?**
-- Answer: 
+- Answer: **Via Pull Requests**
+  - Link PRs to test case work items when automating tests
+  - Azure DevOps tracks: "Test case #2813 automated in PR #456"
+  - No need for elaborate linking mechanisms in code 
 
 ### Authentication & Data
 **Q8: Does your app require login? Need reusable auth state?**
-- Answer: 
+- Answer: **Yes, reusable auth state (Option A)**
+  - Two authentication methods to test: Username/Password and Microsoft SSO
+  - Save auth state once per user type, reuse across all tests (fast, reliable)
+  - Create separate auth state files per test user: `auth-admin.json`, `auth-readonly.json`, etc.
+  - Seeded test users with known permission profiles in specific workgroups
+  - Workgroup switching is a UI action (testable feature)
+  - Tests use appropriate auth state based on permissions needed
 
 **Q9: Test data - Hardcoded, config files, or pulled from somewhere?**
-- Answer: 
+- Answer: **Pre-seeded database with known IDs**
+  - Fresh database created from seed script before each test run
+  - Seed script uses identity insert OFF to set specific, known IDs
+  - Tests reference known entities by ID/name from seeded data
+  - CRUD tests create NEW entities, functional tests use EXISTING seeded entities
+  - **NO database interrogation in UI tests:**
+    - UI tests only interact via UI
+    - Backend/database verification handled by API test suite
+    - No cleanup needed (fresh DB each run)
+  - **Configuration via appsettings.json:**
+    - `appsettings.json` - Base/shared config
+    - `appsettings.Development.json` - Local dev environment
+    - `appsettings.Test.json` - Test environment
+    - `appsettings.Staging.json` - Staging environment
+    - Contains: Base URL, test credentials, environment-specific settings
+    - Use standard .NET `ConfigurationBuilder` approach 
 
 ### Playwright Specifics
 **Q10: Locator preference - `page.GetByRole()` style, `data-testid`, CSS selectors, or mixed approach?**
@@ -153,8 +185,8 @@ public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
 - Complex time-based workflows requiring waiting for scheduled tasks
 
 ## Final Decisions
-**Answered:** Q1, Q2, Q3, Q4
-**Remaining:** Q5-Q16
+**Answered:** Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9
+**Remaining:** Q10-Q16
 
 ---
 
