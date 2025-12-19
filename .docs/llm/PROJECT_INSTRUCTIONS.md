@@ -96,27 +96,110 @@ Automated Playwright .NET tests generated from Azure DevOps manual test cases.
 
 ### Playwright Specifics
 **Q10: Locator preference - `page.GetByRole()` style, `data-testid`, CSS selectors, or mixed approach?**
-- Answer: 
+- Answer: **Semantic locators first (prioritized hierarchy)**
+  - **Primary: Semantic locators** (GetByRole, GetByLabel, GetByText, GetByPlaceholder)
+    - Tests what users see/interact with
+    - Tests accessibility at the same time
+    - More resilient to UI changes
+    - Playwright's recommended best practice
+  - **Secondary: CSS selectors** (for complex grids, dynamic lists, custom components)
+    - Use when semantic locators aren't sufficient
+    - Target stable structural elements
+  - **Last resort: Test IDs** (data-testid)
+    - Avoid polluting codebase with test-specific attributes
+    - Only use when absolutely necessary
+  - Example hierarchy:
+    ```csharp
+    // Try this first
+    await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
+    
+    // Then this if needed
+    await Page.Locator(".capacity-grid .row[data-id='123']").ClickAsync();
+    
+    // Avoid this unless no other option
+    await Page.GetByTestId("complex-widget").ClickAsync();
+    ``` 
 
 **Q11: Execution mode - Headless by default, or headed for debugging?**
-- Answer: 
+- Answer: **Headless by default, with easy toggle for debugging**
+  - Headless in CI/CD pipelines (fast, no UI overhead)
+  - Headed mode available for local debugging (watch tests execute)
+  - Configure via environment variable or Playwright config
+  - Example: `var headless = Environment.GetEnvironmentVariable("CI") != null;`
+  - Can use `slowMo` option in headed mode to slow down execution for debugging 
 
 **Q12: Failure artifacts - Screenshots/traces on failure? Video recording?**
-- Answer: 
+- Answer: **Screenshots + Traces on failure (Videos on demand)**
+  - **Screenshots:** Always capture on test failure
+    - Small file size, shows final state
+    - Quick debugging for simple issues
+  - **Traces:** Capture on failure (or always in CI)
+    - Full execution recording (DOM snapshots, network, console logs)
+    - Opens in Playwright Trace Viewer for detailed debugging
+    - Larger files but invaluable for complex failures
+  - **Videos:** Only when explicitly needed, not by default
+    - Large file size
+    - Useful for demos or complex scenario debugging
+    - Can be enabled on-demand for specific test runs
+  - Artifacts stored in test-results directory 
 
 ### Application Details
 **Q13: App URL - What's the base URL of the SaaS app?**
-- Answer: 
+- Answer: **Environment-specific URLs (to be configured)**
+  - Structure: `https://{client-subdomain}.{environment}.controliq.com`
+  - Test client will be created specifically for automation
+  - URLs configured per environment in appsettings files:
+    - `appsettings.Development.json` - Local dev environment
+    - `appsettings.Test.json` - Test environment  
+    - `appsettings.Staging.json` - Staging environment
+  - Exact URLs: TBD (pending test client creation and local environment setup) 
 
 **Q14: App technology - Any specific details (SPAs, iframes, shadow DOM, etc.)?**
-- Answer: 
+- Answer: **React SPA with SignalR for real-time features**
+  - **React/Redux frontend:** Single Page Application (SPA)
+    - URL changes without full page reloads
+    - Playwright handles SPA navigation well by default
+  - **SignalR:** Used for chatbot and real-time notifications
+    - Tests may need to wait for SignalR notifications to appear
+    - Use appropriate Playwright waits for dynamic updates
+  - **SSO redirects:** Standard OAuth flows (EntraID, Ping, Okta)
+    - Nothing out of the ordinary
+  - **No Shadow DOM:** Standard DOM access, no special handling needed
+  - **Future iframes:** Potential for embedded reporting content
+    - Not currently used, handle when needed 
 
 ### Folder Structure
 **Q15: Test organization - Flat `/Tests` folder, or organize by Test Plan/Suite/Feature?**
-- Answer: 
+- Answer: **Organize by Feature/Module** (as decided in Q3)
+  - Structure:
+    ```
+    /Tests
+      /Login
+      /CapacityPlanning
+      /ManageData
+      /Teams
+      /Forecasting
+      /Reporting
+    ```
+  - Overlapping concerns may require flexibility:
+    - Create `/Shared` or `/Integration` for cross-feature tests if needed
+    - Adjust structure as patterns emerge
+    - Pragmatic approach over rigid organization 
 
 **Q16: Additional folders needed - Helpers? Fixtures? Utilities?**
-- Answer: 
+- Answer: **Start with essential folders, expand as needed**
+  - Initial structure:
+    ```
+    /src/PlaywrightTests
+      /Tests         ← Test classes organized by feature
+      /Pages         ← Page Object Model classes
+      /Components    ← Reusable UI components (grids, widgets)
+      /Helpers       ← Utility functions, auth helpers, data generators
+      /Fixtures      ← Saved auth states (auth-admin.json, etc.)
+      /Config        ← Configuration classes (appsettings reader)
+    ```
+  - Pragmatic approach: Add more as patterns emerge
+  - Structure may expand based on actual needs (likely will need more) 
 
 ---
 
@@ -185,10 +268,61 @@ public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
 - Complex time-based workflows requiring waiting for scheduled tasks
 
 ## Final Decisions
-**Answered:** Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9
-**Remaining:** Q10-Q16
+**All questions answered: Q1-Q16 ✅**
+
+Ready to begin project setup and test implementation.
 
 ---
 
 ## Project Structure
-(Will be defined after decisions are made)
+
+### Repository Layout
+```
+D:\ActiveOpsGit\Github-CiQ-Automation
+├── .docs/
+│   └── llm/
+│       ├── LLM-GUIDE.md              ← LLM capabilities and limitations
+│       └── PROJECT_INSTRUCTIONS.md    ← This file
+├── .gitignore
+├── README.md
+└── src/
+    └── PlaywrightTests/
+        ├── Tests/                     ← Test classes by feature
+        │   ├── Login/
+        │   ├── CapacityPlanning/
+        │   ├── ManageData/
+        │   ├── Teams/
+        │   └── .../
+        ├── Pages/                     ← Page Object Model classes
+        ├── Components/                ← Reusable UI components
+        ├── Helpers/                   ← Utility functions
+        ├── Fixtures/                  ← Auth states, test data
+        ├── Config/                    ← Configuration classes
+        ├── appsettings.json           ← Base config
+        ├── appsettings.Development.json
+        ├── appsettings.Test.json
+        └── PlaywrightTests.csproj
+```
+
+### Technology Stack
+- **.NET 10**
+- **xUnit** - Test framework
+- **Playwright for .NET** - Browser automation
+- **C#** - Programming language
+
+### Key Principles
+1. **Pre-seeded database** - Fresh, deterministic test data
+2. **Reusable auth state** - Fast authentication
+3. **Page Object Model** - Maintainable test structure
+4. **Feature-based organization** - Tests grouped by functionality
+5. **Semantic locators first** - Resilient, accessible selectors
+6. **No database interrogation** - UI tests via UI only
+7. **Independent tests** - Can run in any order, in parallel
+
+### Next Steps
+1. Create .NET test project structure
+2. Configure Playwright
+3. Set up authentication helpers
+4. Create first Page Object (Login)
+5. Automate first test case (TC2813)
+6. Iterate and expand
