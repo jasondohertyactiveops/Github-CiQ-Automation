@@ -22,10 +22,9 @@ Use for: Tests with dependent steps where state matters.
 
 ```csharp
 using Microsoft.Playwright;
-using Microsoft.Playwright.NUnit;
 using Xunit;
 
-namespace PlaywrightTests.Tests.Teams;
+namespace AO.Automation.Tests.Teams;
 
 /// <summary>
 /// Azure Test Case: 12345
@@ -40,7 +39,7 @@ public class CreateAndConfigureTeam : PlaywrightTest
     {
         // Arrange - Load auth state and navigate
         var teamsPage = new TeamsPage(Page);
-        await Page.GotoAsync("https://test.controliq.com/teams");
+        await Page.GotoAsync($"{Config.BaseUrl}/teams");
         
         // Act - Create team
         await teamsPage.ClickCreateTeamButton();
@@ -73,10 +72,9 @@ Use for: Independent validation checks on the same page.
 
 ```csharp
 using Microsoft.Playwright;
-using Microsoft.Playwright.NUnit;
 using Xunit;
 
-namespace PlaywrightTests.Tests.Login;
+namespace AO.Automation.Tests.Login;
 
 /// <summary>
 /// Azure Test Case: 2813
@@ -87,10 +85,11 @@ namespace PlaywrightTests.Tests.Login;
 [Trait("Feature", "Login")]
 public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
 {
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
+        await base.InitializeAsync();
         // Navigate once, all tests share this page load
-        await Page.GotoAsync("https://test.controliq.com");
+        await Page.GotoAsync(Config.BaseUrl);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -161,7 +160,7 @@ Use for: Straightforward pages with basic interactions.
 ```csharp
 using Microsoft.Playwright;
 
-namespace PlaywrightTests.Pages;
+namespace AO.Automation.Pages;
 
 public class LoginPage
 {
@@ -205,7 +204,7 @@ Use for: Pages with complex workflows and navigation.
 ```csharp
 using Microsoft.Playwright;
 
-namespace PlaywrightTests.Pages;
+namespace AO.Automation.Pages;
 
 public class TeamsPage
 {
@@ -292,7 +291,7 @@ Use for: Complex controls used across multiple pages.
 ```csharp
 using Microsoft.Playwright;
 
-namespace PlaywrightTests.Components;
+namespace AO.Automation.Components;
 
 public class DataGrid
 {
@@ -355,7 +354,7 @@ Use for: Specialized complex control with drag-drop.
 ```csharp
 using Microsoft.Playwright;
 
-namespace PlaywrightTests.Components;
+namespace AO.Automation.Components;
 
 public class CapacityPlanningGrid
 {
@@ -415,7 +414,7 @@ public class CapacityPlanningGrid
 ```csharp
 using Microsoft.Playwright;
 
-namespace PlaywrightTests.Helpers;
+namespace AO.Automation.Helpers;
 
 public static class AuthHelper
 {
@@ -438,7 +437,7 @@ public static class AuthHelper
         string outputFile)
     {
         // Perform login
-        await page.GotoAsync("https://test.controliq.com");
+        await page.GotoAsync(Config.Instance.BaseUrl);
         await page.GetByLabel("Username").FillAsync(username);
         await page.GetByLabel("Password").FillAsync(password);
         await page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
@@ -545,7 +544,7 @@ public async Task TestWithAdminUser()
     var page = await context.NewPageAsync();
     
     // Already authenticated, go straight to feature
-    await page.GotoAsync("https://test.controliq.com/capacity-planning");
+    await page.GotoAsync($"{Config.BaseUrl}/capacity-planning");
     
     // Test your feature
     // ...
@@ -558,7 +557,7 @@ public async Task TestWithAdminUser()
 [Fact]
 public async Task TestDynamicDataLoad()
 {
-    await Page.GotoAsync("https://test.controliq.com/manage-data");
+    await Page.GotoAsync($"{Config.BaseUrl}/manage-data");
     
     // Wait for data to load
     await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
@@ -578,7 +577,7 @@ public async Task TestDynamicDataLoad()
 [Fact]
 public async Task TestConditionalSSO()
 {
-    await Page.GotoAsync("https://test.controliq.com");
+    await Page.GotoAsync(Config.BaseUrl);
     
     var ssoButton = Page.GetByRole(AriaRole.Button, new() { Name = "Login with Microsoft" });
     
@@ -606,7 +605,7 @@ public async Task TestEndToEndWorkflow()
 {
     // Step 1: Navigate and switch context
     var workgroupHelper = new WorkgroupHelper(Page);
-    await Page.GotoAsync("https://test.controliq.com/teams");
+    await Page.GotoAsync($"{Config.BaseUrl}/teams");
     await workgroupHelper.SwitchWorkgroup("Operations Team");
     
     // Step 2: Create team
@@ -619,7 +618,7 @@ public async Task TestEndToEndWorkflow()
     await WaitHelper.WaitForSignalRNotification(Page, "Team created successfully");
     
     // Step 4: Navigate to capacity planning
-    await Page.GotoAsync("https://test.controliq.com/capacity-planning");
+    await Page.GotoAsync($"{Config.BaseUrl}/capacity-planning");
     
     // Step 5: Verify team appears in capacity view
     var grid = new CapacityPlanningGrid(Page);
@@ -637,7 +636,7 @@ public async Task TestEndToEndWorkflow()
 public async Task TestWithKnownSeededData()
 {
     // Pre-seeded data: Team "Alpha Team" with ID 550e8400-e29b-41d4-a716-446655440000
-    await Page.GotoAsync("https://test.controliq.com/teams");
+    await Page.GotoAsync($"{Config.BaseUrl}/teams");
     
     var teamsPage = new TeamsPage(Page);
     await teamsPage.SearchForTeam("Alpha Team");

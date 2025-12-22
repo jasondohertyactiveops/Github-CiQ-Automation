@@ -49,14 +49,14 @@ Created:
 - /Tests/Login/LoginScreenValidation.cs
 - /Pages/LoginPage.cs
 
-Ready for you to run: dotnet test --filter "FullyQualifiedName~LoginScreenValidation"
+Ready for you to run: dotnet test --filter "Feature=Login"
 ```
 
 #### Step 4: You Run the Test
 **You do:**
 ```bash
-cd D:\ActiveOpsGit\Github-CiQ-Automation\src\PlaywrightTests
-dotnet test --filter "FullyQualifiedName~LoginScreenValidation"
+cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation
+dotnet test --filter "Feature=Login"
 ```
 
 **Then tell me:**

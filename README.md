@@ -53,11 +53,13 @@ Coming soon:
 
 ## Project Status
 
-**Current Phase:** Foundation and Architecture
-- ✅ Project structure defined
+**Current Phase:** Initial Implementation
+- ✅ Project structure created
 - ✅ Architectural decisions documented
 - ✅ Workflow established
-- ⏳ Awaiting project setup
+- ✅ First test automated (TC2813 - Login Screen Validation, 8 tests passing)
+- ⏳ Authentication helpers pending
+- ⏳ Expanding test coverage
 
 ## Quick Start
 
@@ -71,7 +73,7 @@ Coming soon:
 
 2. **Restore NuGet packages**
    ```bash
-   cd src/PlaywrightTests
+   cd src/AO.Automation
    dotnet restore
    ```
 
@@ -89,7 +91,7 @@ Coming soon:
 ### Running Tests
 
 ```bash
-cd src/PlaywrightTests
+cd src/AO.Automation
 
 # Run all tests
 dotnet test

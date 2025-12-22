@@ -287,27 +287,49 @@ D:\ActiveOpsGit\Github-CiQ-Automation
 ├── .docs/
 │   └── llm/
 │       ├── LLM-GUIDE.md              ← LLM capabilities and limitations
-│       └── PROJECT_INSTRUCTIONS.md    ← This file
+│       ├── PROJECT_INSTRUCTIONS.md    ← This file
+│       ├── WORKFLOW.md                ← Collaboration workflow
+│       ├── PATTERNS.md                ← Code examples
+│       └── RATIONALE.md               ← Decision explanations
 ├── .gitignore
 ├── README.md
 └── src/
-    └── PlaywrightTests/
+    ├── AO.Automation.sln              ← Solution file
+    └── AO.Automation/                 ← Test project
+        ├── BaseClasses/               ← Base test classes
+        │   └── PlaywrightTest.cs      ← Abstract base for all tests
         ├── Tests/                     ← Test classes by feature
         │   ├── Login/
+        │   │   └── LoginScreenValidation.cs
         │   ├── CapacityPlanning/
         │   ├── ManageData/
         │   ├── Teams/
         │   └── .../
         ├── Pages/                     ← Page Object Model classes
+        │   └── LoginPage.cs
         ├── Components/                ← Reusable UI components
         ├── Helpers/                   ← Utility functions
         ├── Fixtures/                  ← Auth states, test data
         ├── Config/                    ← Configuration classes
+        │   └── TestConfig.cs
+        ├── Usings.cs                  ← Global using statements
         ├── appsettings.json           ← Base config
-        ├── appsettings.Development.json
-        ├── appsettings.Test.json
-        └── PlaywrightTests.csproj
+        ├── appsettings.Local.json     ← Local containerized environment
+        ├── appsettings.Development.json  ← Dev environment
+        ├── appsettings.Test.json      ← Test environment
+        └── AO.Automation.csproj       ← Project file
 ```
+
+### Namespace Structure
+- **AO.Automation** - Root namespace
+- **AO.Automation.BaseClasses** - Base test classes
+- **AO.Automation.Config** - Configuration classes
+- **AO.Automation.Pages** - Page Object Model classes
+- **AO.Automation.Components** - Reusable UI components
+- **AO.Automation.Helpers** - Helper and utility classes
+- **AO.Automation.Tests.{Feature}** - Test classes grouped by feature
+  - Example: AO.Automation.Tests.Login
+  - Example: AO.Automation.Tests.CapacityPlanning
 
 ### Technology Stack
 - **.NET 10**
@@ -325,9 +347,10 @@ D:\ActiveOpsGit\Github-CiQ-Automation
 7. **Independent tests** - Can run in any order, in parallel
 
 ### Next Steps
-1. Create .NET test project structure
-2. Configure Playwright
-3. Set up authentication helpers
-4. Create first Page Object (Login)
-5. Automate first test case (TC2813)
-6. Iterate and expand
+1. ✅ Create .NET test project structure
+2. ✅ Configure Playwright
+3. ⏳ Set up authentication helpers
+4. ✅ Create first Page Object (LoginPage)
+5. ✅ Automate first test case (TC2813) - 8 tests passing
+6. Continue automating test cases
+7. Expand to more features
