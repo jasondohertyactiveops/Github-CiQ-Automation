@@ -8,10 +8,15 @@ This project converts manual test cases from Azure Test Plans into fully automat
 
 ## Prerequisites
 
-- Azure DevOps MCP server (access to test plans, suites, and test case details)
-- Playwright MCP server (live browser interaction and code generation)
-- .NET 10
-- Playwright for .NET
+### For Running Tests
+- **.NET 10 SDK** - [Download here](https://dotnet.microsoft.com/download/dotnet/10.0)
+- **PowerShell** - For running Playwright browser install script (included with Windows)
+
+### For Development
+- **Azure DevOps MCP server** - Access to test plans, suites, and test case details
+- **Playwright MCP server** (optional) - Live browser interaction for exploring the app
+- **Git** - Version control
+- **Visual Studio Code** or **Visual Studio** - Code editor
 
 ## Workflow
 
@@ -56,7 +61,48 @@ Coming soon:
 
 ## Quick Start
 
-*Setup instructions coming once .NET project is created*
+### Initial Setup (One-Time)
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/Github-CiQ-Automation.git
+   cd Github-CiQ-Automation
+   ```
+
+2. **Restore NuGet packages**
+   ```bash
+   cd src/PlaywrightTests
+   dotnet restore
+   ```
+
+3. **Build the project**
+   ```bash
+   dotnet build
+   ```
+
+4. **Install Playwright browsers** (one-time, ~300MB download)
+   ```bash
+   pwsh bin/Debug/net10.0/playwright.ps1 install
+   ```
+   This downloads Chromium, Firefox, and WebKit browsers that Playwright manages.
+
+### Running Tests
+
+```bash
+cd src/PlaywrightTests
+
+# Run all tests
+dotnet test
+
+# Run specific feature
+dotnet test --filter "Feature=Login"
+
+# Run smoke tests only
+dotnet test --filter "Suite=Smoke"
+```
+
+### First Time Setup Complete!
+You're ready to run tests or start automating new ones.
 
 ## Technology Stack
 
