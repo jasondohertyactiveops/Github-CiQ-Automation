@@ -28,8 +28,13 @@ Automated Playwright .NET tests generated from Azure DevOps manual test cases.
 **Q3: Test organization - How should tests be grouped? By Azure Test Suite? By feature? Flat structure?**
 - Answer: **By Feature/Module** with xUnit traits for filtering
   - Structure: `/Tests/Login`, `/Tests/CapacityPlanning`, `/Tests/ManageData`, etc.
-  - Use `[Trait]` attributes for cross-cutting concerns: `[Trait("Suite", "Smoke")]`, `[Trait("Feature", "Login")]`
-  - Enables running: `dotnet test --filter "Suite=Smoke"` or `--filter "Feature=CapacityPlanning"`
+  - Use `[Trait]` attributes for cross-cutting concerns:
+    - `[Trait("Suite", "Login-25146")]` - Links to Azure Test Suite ID
+    - `[Trait("Feature", "Login")]` - Feature area
+    - `[Trait("TestType", "NotUIAppropriate")]` - For tests not suitable for UI automation
+    - `[Trait("Reason", "TimeBased")]` - Why not UI appropriate (TimeBased, EmailSystem, BackgroundJob, etc.)
+  - Enables running: `dotnet test --filter "Suite=Login-25146"` or `--filter "Feature=Login"`
+  - Find non-UI tests: `dotnet test --filter "TestType=NotUIAppropriate" --list-tests`
 
 ### Naming Conventions
 **Q4: Test class names - How should they relate to Azure test case IDs?**
@@ -43,14 +48,28 @@ Automated Playwright .NET tests generated from Azure DevOps manual test cases.
     /// Verify that the Login screen shows as expected
     /// </summary>
     ```
-  - Do NOT use `[Trait("TestCase", "2813")]` - creates useless filtering (all IDs unique) 
+  - Do NOT use `[Trait("TestCase", "2813")]` - creates useless filtering (all IDs unique)
+  - Use `[Trait("Suite", "Login-25146")]` to identify which test suite the test belongs to
 
 **Q5: Test method names - Mirror Azure test case titles exactly, or C#-friendly sanitized versions?**
 - Answer: **C#-friendly sanitized (PascalCase)**
   - Remove unnecessary words: "Verify that", "Check that", "Ensure"
   - Example: Azure title "Verify that the Login screen shows as expected" → `LoginScreenShowsAsExpected()`
   - Follow .NET naming conventions
-  - Still traceable via Azure ID in class comment 
+  - Still traceable via Azure ID in class comment
+  - **Step Traceability:** Use standardized comments to link code to Azure test steps:
+    ```csharp
+    [Fact]
+    public async Task UsernameFieldIsEmpty()
+    {
+        // AD: Step 2 - Check username field
+        var field = Page.GetByLabel("Username");
+        await Expect(field).ToBeEmptyAsync();
+    }
+    ```
+  - Format: `// AD: Step X - Brief summary (max 5 words)`
+  - "AD" = Azure DevOps
+  - Enables searching for specific steps: Search `// AD: Step 2` finds all Step 2 implementations 
 
 ### Azure DevOps Integration
 **Q6: Linking - Should test classes/methods include attributes or comments with the Azure test case ID?**
