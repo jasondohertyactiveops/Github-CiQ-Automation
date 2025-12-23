@@ -10,9 +10,13 @@ namespace AO.Automation.Tests.Login;
 [Trait("Suite", "Smoke")]
 [Trait("Suite", "Regression")]
 [Trait("Feature", "Login")]
-public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
+public class LoginScreenValidation : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     private LoginPage _loginPage = null!;
+    
+    public LoginScreenValidation(BrowserFixture browserFixture) : base(browserFixture)
+    {
+    }
     
     public override async Task InitializeAsync()
     {

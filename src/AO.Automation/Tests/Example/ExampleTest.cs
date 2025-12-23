@@ -8,8 +8,12 @@ namespace AO.Automation.Tests.Example;
 /// </summary>
 [Trait("Suite", "Smoke")]
 [Trait("Feature", "Example")]
-public class ExampleTest : PlaywrightTest
+public class ExampleTest : PlaywrightTest, IClassFixture<BrowserFixture>
 {
+    public ExampleTest(BrowserFixture browserFixture) : base(browserFixture)
+    {
+    }
+    
     [Fact]
     public async Task CanNavigateToApplication()
     {

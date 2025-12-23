@@ -1,29 +1,31 @@
 namespace AO.Automation.BaseClasses;
 
 /// <summary>
-/// Base class for all Playwright tests. Handles browser and page lifecycle.
-/// All test classes should inherit from this.
+/// Base class for all Playwright tests. Handles page lifecycle.
+/// Browser is shared via BrowserFixture (one per test class).
+/// Each test gets its own Context and Page (isolated).
+/// Test classes should implement IClassFixture<BrowserFixture>.
 /// </summary>
 public abstract class PlaywrightTest : IAsyncLifetime
 {
     protected TestConfig Config => TestConfig.Instance;
-    protected IPlaywright? Playwright { get; private set; }
-    protected IBrowser? Browser { get; private set; }
-    protected IBrowserContext? Context { get; private set; }
+    protected IBrowser Browser { get; private set; } = null!;
+    protected IBrowserContext Context { get; private set; } = null!;
     protected IPage Page { get; private set; } = null!;
+    
+    private readonly BrowserFixture _browserFixture;
+    
+    protected PlaywrightTest(BrowserFixture browserFixture)
+    {
+        _browserFixture = browserFixture;
+    }
     
     public virtual async Task InitializeAsync()
     {
-        // Create Playwright instance
-        Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
+        // Get shared browser from fixture
+        Browser = _browserFixture.Browser;
         
-        // Launch browser based on config
-        Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            Headless = Config.Headless
-        });
-        
-        // Create browser context with default options
+        // Create NEW context and page for each test (isolated)
         Context = await Browser.NewContextAsync(new BrowserNewContextOptions
         {
             BaseURL = Config.BaseUrl,
@@ -31,16 +33,14 @@ public abstract class PlaywrightTest : IAsyncLifetime
             IgnoreHTTPSErrors = true
         });
         
-        // Create page
         Page = await Context.NewPageAsync();
     }
 
     public virtual async Task DisposeAsync()
     {
-        // Cleanup
+        // Cleanup context and page after each test
         if (Page != null) await Page.CloseAsync();
         if (Context != null) await Context.CloseAsync();
-        if (Browser != null) await Browser.CloseAsync();
-        Playwright?.Dispose();
+        // Browser cleanup handled by BrowserFixture (shared resource)
     }
 }
