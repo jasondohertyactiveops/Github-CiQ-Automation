@@ -25,19 +25,23 @@ These MD files serve as:
 .docs/
   test-cases/
     {SuiteName}-{SuiteID}/
-      TC{ID}-{DescriptiveName}.md
-      TC{ID}-{DescriptiveName}-NOT-UI.md
+      {Order}-TC{ID}-{DescriptiveName}.md
+      {Order}-TC{ID}-{DescriptiveName}-NOT-UI.md
+      {Order}-TC{ID}-{DescriptiveName}-TODO.md
 ```
+
+**{Order}** = Two-digit order number from Azure suite (01, 02, 03, etc.)
 
 **Example:**
 ```
 .docs/
   test-cases/
     Login-25146/
-      TC25057-ValidCredentialsLogin.md
-      TC25058-InvalidCredentialsLogin.md
-      TC25059-EmailLinkExpiry-NOT-UI.md
-      TC25060-TokenRefresh-NOT-UI.md
+      01-TC25059-EmailLinkExpiry-NOT-UI.md
+      02-TC25060-TokenRefresh-NOT-UI.md
+      03-TC24154-UsersWithoutEmail-TODO.md
+      07-TC25057-ValidCredentialsLogin.md
+      08-TC25058-InvalidCredentialsLogin.md
 ```
 
 ---
@@ -319,16 +323,20 @@ Use current app elements (no Remember me checkbox)
 
 ## File Naming Conventions
 
-**UI-Appropriate tests:**
-- `TC{ID}-{DescriptiveName}.md`
-- Example: `TC25057-ValidCredentialsLogin.md`
+**Format:** `{Order}-TC{ID}-{DescriptiveName}[-Suffix].md`
 
-**Not-UI tests:**
-- `TC{ID}-{DescriptiveName}-NOT-UI.md`
-- Example: `TC25059-EmailLinkExpiry-NOT-UI.md`
+**Pure-UI-Appropriate tests:**
+- `{Order}-TC{ID}-{DescriptiveName}.md`
+- Example: `07-TC25057-ValidCredentialsLogin.md`
+
+**Not Pure UI tests:**
+- `{Order}-TC{ID}-{DescriptiveName}-NOT-UI.md`
+- Example: `01-TC25059-EmailLinkExpiry-NOT-UI.md`
 
 **Todo/Unclear:**
-- `TC{ID}-{DescriptiveName}-TODO.md`
-- Example: `TC24154-UsersWithoutEmail-TODO.md`
+- `{Order}-TC{ID}-{DescriptiveName}-TODO.md`
+- Example: `03-TC24154-UsersWithoutEmail-TODO.md`
 
-This helps quickly identify test status by filename alone.
+**{Order}** = Two-digit number (01, 02, 03...) matching position in Azure Test Suite
+
+This keeps files in suite order and makes it easy to see which test cases are documented.
