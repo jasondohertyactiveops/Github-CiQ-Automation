@@ -39,6 +39,9 @@ public class TestConfig
     public bool TracesOnFailure => bool.Parse(_configuration["Traces:OnFailure"] ?? "true");
     public string TracesPath => _configuration["Traces:Path"] ?? "traces";
     
+    public string JwtActivationKey => _configuration["Jwt:ActivationKey"] ?? throw new InvalidOperationException("Jwt:ActivationKey not configured");
+    public string JwtResetPasswordKey => _configuration["Jwt:ResetPasswordKey"] ?? throw new InvalidOperationException("Jwt:ResetPasswordKey not configured");
+    
     public string GetTestUserUsername(string userType) => 
         _configuration[$"TestUsers:{userType}:Username"] ?? throw new InvalidOperationException($"TestUsers:{userType}:Username not configured");
     
