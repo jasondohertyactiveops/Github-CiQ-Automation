@@ -13,7 +13,8 @@ public class LoginPage
     private ILocator UsernameInput => _page.GetByRole(AriaRole.Textbox, new() { Name = "Username" });
     private ILocator PasswordInput => _page.GetByRole(AriaRole.Textbox, new() { Name = "Password" });
     private ILocator LoginButton => _page.GetByRole(AriaRole.Button, new() { Name = "Login" });
-    private ILocator ErrorMessage => _page.Locator("[role='alert']");
+    private ILocator ErrorMessage => _page.Locator("p").Filter(new() 
+        { HasTextRegex = new System.Text.RegularExpressions.Regex("Sorry, your login was unsuccessful|You don't have any roles assigned") });
     
     public LoginPage(IPage page)
     {
@@ -43,10 +44,16 @@ public class LoginPage
     /// </summary>
     public async Task<string?> GetErrorMessageAsync()
     {
-        if (await ErrorMessage.IsVisibleAsync())
+        try
         {
+            // Wait for error message to appear (up to 5 seconds)
+            await ErrorMessage.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
             return await ErrorMessage.TextContentAsync();
         }
-        return null;
+        catch
+        {
+            // No error message appeared
+            return null;
+        }
     }
 }
