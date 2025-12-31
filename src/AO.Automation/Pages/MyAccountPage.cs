@@ -85,4 +85,12 @@ public class MyAccountPage
         var isActive = await ChangePasswordButton.GetAttributeAsync("data-active");
         return isActive == "true";
     }
+    
+    /// <summary>
+    /// Click Change Password button to open dialog
+    /// </summary>
+    public async Task ClickChangePasswordButtonAsync()
+    {
+        await ChangePasswordButton.ClickAsync();
+    }
 }

@@ -43,4 +43,35 @@ public class TokenGeneratorUtility : PlaywrightTest, IClassFixture<BrowserFixtur
         // Force test to "pass" so we can see the output
         Assert.True(true);
     }
+    
+    [Fact]
+    public void GenerateResetPasswordToken()
+    {
+        var tokenHelper = new TokenHelper(Config.JwtActivationKey, Config.JwtResetPasswordKey);
+        
+        var token = tokenHelper.GenerateResetPasswordToken(
+            clientIdentifier: "ww7client",
+            staffMemberId: 9006,
+            username: "tc25061.reset@activeops.com",
+            securityStamp: "4B2C3D4E-5F6A-7B8C-9D0E-1F2A3B4C5D6E"
+        );
+        
+        var url = $"http://ww7client.localhost/resetpassword/{token}";
+        
+        Console.WriteLine("=====================================");
+        Console.WriteLine("RESET PASSWORD TOKEN GENERATED");
+        Console.WriteLine("=====================================");
+        Console.WriteLine();
+        Console.WriteLine("Token:");
+        Console.WriteLine(token);
+        Console.WriteLine();
+        Console.WriteLine("URL:");
+        Console.WriteLine(url);
+        Console.WriteLine();
+        Console.WriteLine("Valid for: 24 hours");
+        Console.WriteLine("=====================================");
+        
+        // Force test to "pass" so we can see the output
+        Assert.True(true);
+    }
 }
