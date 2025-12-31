@@ -9,9 +9,11 @@ namespace AO.Automation.Tests.Login;
 /// <summary>
 /// TC24166: Account Activation
 /// Verifies user can activate account using activation link and login for first time
+/// NOTE: One-shot test - activates User 9003 permanently. Requires fresh database to re-run.
 /// </summary>
 [Trait("Suite", "Login-25146")]
 [Trait("Feature", "Login")]
+[Trait("Category", "OneShot")]
 public class AccountActivation : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public AccountActivation(BrowserFixture browserFixture) : base(browserFixture)
