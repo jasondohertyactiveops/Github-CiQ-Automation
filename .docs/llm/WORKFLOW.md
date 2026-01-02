@@ -336,3 +336,68 @@ If many tests suddenly fail:
 ```
 
 And we're off! 🚀
+
+---
+
+## Current Workflow (Updated)
+
+### Before Running Tests
+**Always recreate database if:**
+- Running full suite (includes OneShot tests)
+- Seeding scripts changed
+- Last run included OneShot tests
+
+```powershell
+cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+.\recreate-databases.ps1
+```
+
+### Daily Development Cycle
+
+**Morning:**
+1. Fresh database: `recreate-databases.ps1`
+2. Run full suite: `dotnet test` (verify all passing)
+3. Start work on new test
+
+**During Development:**
+1. Generate/modify test code
+2. Quick run: `dotnet test --filter "Category!=OneShot"` (skip database-consuming tests)
+3. Iterate until passing
+
+**Before Commit:**
+1. Fresh database: `recreate-databases.ps1`
+2. Full suite: `dotnet test` (verify nothing broke)
+3. Commit if all passing
+
+### OneShot Test Strategy
+
+**OneShot tests modify data permanently:**
+- Activate accounts (can't activate twice)
+- Change passwords (old password no longer works)
+- Lock accounts (failed logins increment lockout counter)
+- Change preferences (user left in modified state if test fails)
+
+**Handling OneShot:**
+- Mark with `[Trait("Category", "OneShot")]`
+- Document which user consumed (e.g., "User 9003")
+- Update USER INDEX in AutomationTestUsers.sql
+- Fresh database required between runs
+
+**Development workflow with OneShot:**
+1. Develop test using `dotnet test --filter "FullyQualifiedName~YourTest"`
+2. Test will fail/pass, but consumes user
+3. `recreate-databases.ps1` to reset user
+4. Re-run to verify
+5. Once working, run full suite to ensure no interference
+
+### Two-Repo Coordination
+
+**When seeding changes:**
+1. Edit `WW7/ww7-api/.../AutomationTestUsers.sql`
+2. Commit in WW7 repo
+3. Run `recreate-databases.ps1`
+4. Edit test in Github-CiQ-Automation repo
+5. Run `dotnet test`
+6. Commit in Github-CiQ-Automation repo
+
+**Separate commits required** - different repos, different concerns

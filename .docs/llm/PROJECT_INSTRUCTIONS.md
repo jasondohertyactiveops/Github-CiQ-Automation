@@ -368,8 +368,69 @@ D:\ActiveOpsGit\Github-CiQ-Automation
 ### Next Steps
 1. ✅ Create .NET test project structure
 2. ✅ Configure Playwright
-3. ⏳ Set up authentication helpers
+3. ✅ Set up authentication helpers
 4. ✅ Create first Page Object (LoginPage)
 5. ✅ Automate first test case (TC2813) - 8 tests passing
-6. Continue automating test cases
-7. Expand to more features
+6. ✅ Continue automating test cases
+7. ✅ Expand to more features
+
+---
+
+## Current Project State
+
+### Test Coverage
+**Login Suite (Login-25146): 11/12 tests (92%)**
+- 15 test methods total (some tests split into multiple methods)
+- 8 OneShot tests (require fresh database)
+- 7 Repeatable tests (can run without fresh DB)
+
+### Seeding Strategy (Implemented)
+**Reserved ID Range:** 9000-9999 for automation test users
+
+**User Types:**
+- **Test-specific users (9000+):** OneShot scenarios, edge cases
+- **Reusable users (9100+):** General-purpose, shared across tests
+
+**Standard password:** `Workware@1` for all automation users
+
+**Complete user index maintained in:**
+`WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/AutomationTestUsers.sql`
+
+### Token Infrastructure (Implemented)
+**TokenHelper utility:**
+- Generates JWT tokens at test runtime (no 24-hour expiry issues)
+- Supports activation and reset password tokens
+- Uses PBKDF2 hashing to match backend
+- Located: `src/AO.Automation/Helpers/TokenHelper.cs`
+
+### Test Execution
+**Full suite:** `dotnet test` (~30 seconds, requires fresh DB)
+**Quick iterations:** `dotnet test --filter "Category!=OneShot"` (~15 seconds)
+
+**Database recreation required for:**
+- OneShot tests (consume users permanently)
+- Seeding script changes
+- Before commits/CI runs
+
+**Command:**
+```powershell
+cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+.\recreate-databases.ps1
+```
+
+### Page Object Structure (Current)
+**Flat structure in `/Pages`:**
+- LoginPage, ActivationPage, ResetPasswordPage
+- MyAccountPage, ChangePasswordDialog, GeneralPreferencesTab
+- UserMenuComponent
+
+**Under consideration:** Organize by feature (Login/, MyAccount/, Shared/)
+
+### Key Infrastructure Solved
+- ✅ Nginx SPA routing (eliminates 404s on direct navigation)
+- ✅ FakeTime clock synchronization (auto-fixes in start scripts)
+- ✅ RTM "Select Your Activity" dialog auto-close
+- ✅ Runtime token generation
+- ✅ PBKDF2 SecurityStamp hashing
+- ✅ Languages permission (117) added to Role 1
+- ✅ OneShot vs Repeatable categorization
