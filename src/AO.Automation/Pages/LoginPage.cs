@@ -37,6 +37,25 @@ public class LoginPage
         await UsernameInput.FillAsync(username);
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();
+        
+        // After login, wait for redirect and close RTM dialog if present
+        try
+        {
+            await _page.WaitForURLAsync(new System.Text.RegularExpressions.Regex("/rtm"), new() { Timeout = 5000 });
+            
+            // Wait for RTM dialog to appear and close it
+            await _page.WaitForTimeoutAsync(1000);
+            var closeButton = _page.GetByTestId("close-btn");
+            if (await closeButton.IsVisibleAsync())
+            {
+                await closeButton.ClickAsync();
+                await _page.WaitForTimeoutAsync(500);
+            }
+        }
+        catch
+        {
+            // Not redirecting to /rtm or dialog not present
+        }
     }
     
     /// <summary>

@@ -25,34 +25,7 @@ public class UserMenuComponent
     /// </summary>
     public async Task OpenMenuAsync()
     {
-        // Close any notification dialogs that might be blocking
-        await CloseNotificationIfPresentAsync();
-        
         await UserIcon.ClickAsync();
-    }
-    
-    /// <summary>
-    /// Close blocking dialogs if present (RTM activity dialog, notifications)
-    /// </summary>
-    private async Task CloseNotificationIfPresentAsync()
-    {
-        try
-        {
-            // Wait for RTM "Select Your Activity" dialog to appear
-            var rtmDialog = _page.GetByRole(AriaRole.Dialog, new() { Name = "Select Your Activity" });
-            await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 2000 });
-            
-            // Dialog is present, close it
-            var closeButton = _page.GetByTestId("close-btn");
-            await closeButton.ClickAsync();
-            
-            // Wait for dialog to close
-            await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 2000 });
-        }
-        catch
-        {
-            // Dialog not present or already closed, continue
-        }
     }
     
     /// <summary>
