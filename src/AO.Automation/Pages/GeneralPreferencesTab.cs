@@ -38,5 +38,9 @@ public class GeneralPreferencesTab
             response.Url.Contains("/api/UserPreference/") && 
             response.Url.Contains("/localisation") &&
             response.Request.Method == "PUT");
+        
+        // Wait for page to re-render with new language
+        await _page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
+        await _page.WaitForTimeoutAsync(1000); // Extra time for React to update all labels
     }
 }

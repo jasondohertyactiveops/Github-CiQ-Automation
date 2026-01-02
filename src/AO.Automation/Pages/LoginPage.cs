@@ -38,23 +38,34 @@ public class LoginPage
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();
         
-        // After login, wait for redirect and close RTM dialog if present
+        // After login, wait for any redirect and close RTM dialog if we land on /rtm
         try
         {
-            await _page.WaitForURLAsync(new System.Text.RegularExpressions.Regex("/rtm"), new() { Timeout = 5000 });
+            // Wait for any navigation to complete
+            await _page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle, new() { Timeout = 5000 });
             
-            // Wait for RTM dialog to appear and close it
-            await _page.WaitForTimeoutAsync(1000);
-            var closeButton = _page.GetByTestId("close-btn");
-            if (await closeButton.IsVisibleAsync())
+            // If on /rtm, close the RTM dialog
+            if (_page.Url.Contains("/rtm"))
             {
-                await closeButton.ClickAsync();
-                await _page.WaitForTimeoutAsync(500);
+                // Wait for dialog to appear, then close it
+                var rtmDialog = _page.GetByRole(AriaRole.Dialog, new() { Name = "Select Your Activity" });
+                try
+                {
+                    await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 3000 });
+                    var closeButton = _page.GetByTestId("close-btn");
+                    await closeButton.ClickAsync();
+                    // Wait for dialog to fully close
+                    await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 2000 });
+                }
+                catch
+                {
+                    // Dialog didn't appear or already closed
+                }
             }
         }
         catch
         {
-            // Not redirecting to /rtm or dialog not present
+            // Navigation didn't complete or dialog not present - continue
         }
     }
     
