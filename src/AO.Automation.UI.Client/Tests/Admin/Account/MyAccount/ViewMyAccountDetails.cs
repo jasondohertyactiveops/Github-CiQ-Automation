@@ -1,6 +1,7 @@
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
 using AO.Automation.UI.Client.Pages.MyAccount;
+using AO.Automation.UI.Client.Pages.RTM;
 using AO.Automation.UI.Client.Pages.Shared;
 using Microsoft.Playwright;
 
@@ -30,6 +31,10 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
         // Wait for dashboard to load
         await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/rtm"));
         
+        // Close RTM dialog if it appears (blocks interactions)
+        var rtmPage = new RtmPage(Page);
+        await rtmPage.CloseSelectActivityDialogIfPresentAsync();
+        
         // AD: Step 2 - Check user menu icon and dropdown
         var userMenu = new UserMenuComponent(Page);
         
@@ -54,6 +59,11 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
         var loginPage = new LoginPage(Page);
         await loginPage.NavigateAsync();
         await loginPage.LoginAsync("automation.teammember1@activeops.com", "Workware@1");
+        
+        // Wait for redirect to RTM and close dialog
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/rtm"));
+        var rtmPage = new RtmPage(Page);
+        await rtmPage.CloseSelectActivityDialogIfPresentAsync();
         
         var userMenu = new UserMenuComponent(Page);
         await userMenu.NavigateToMyAccountAsync();
@@ -84,6 +94,11 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
         var loginPage = new LoginPage(Page);
         await loginPage.NavigateAsync();
         await loginPage.LoginAsync("automation.teammember1@activeops.com", "Workware@1");
+        
+        // Wait for redirect to RTM and close dialog
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/rtm"));
+        var rtmPage = new RtmPage(Page);
+        await rtmPage.CloseSelectActivityDialogIfPresentAsync();
         
         var userMenu = new UserMenuComponent(Page);
         await userMenu.NavigateToMyAccountAsync();

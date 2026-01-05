@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
-using AO.Automation.UI.Client.Helpers;
+using AO.Automation.Shared.Helpers;
 using AO.Automation.UI.Client.Pages.Login;
 using Microsoft.Playwright;
 
@@ -28,8 +28,8 @@ public class ResetPasswordFromLoginScreen : PlaywrightTest, IClassFixture<Browse
         // SecurityStamp: 4B2C3D4E-5F6A-7B8C-9D0E-1F2A3B4C5D6E
         // AD: Step 1 - Generate reset token and navigate to reset page
         
-        var tokenHelper = new TokenHelper(Config.JwtActivationKey, Config.JwtResetPasswordKey);
-        var resetToken = tokenHelper.GenerateResetPasswordToken(
+        var tokenService = new TokenService(Config.JwtActivationKey, Config.JwtResetPasswordKey);
+        var resetToken = tokenService.GenerateResetPasswordToken(
             clientIdentifier: "ww7client",
             staffMemberId: 9006,
             username: "tc25061.reset@activeops.com",

@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
 using AO.Automation.UI.Client.Pages.MyAccount;
+using AO.Automation.UI.Client.Pages.RTM;
 using AO.Automation.UI.Client.Pages.Shared;
 using Microsoft.Playwright;
 
@@ -31,6 +32,11 @@ public class ChangePasswordFromMyAccount : PlaywrightTest, IClassFixture<Browser
         var loginPage = new LoginPage(Page);
         await loginPage.NavigateAsync();
         await loginPage.LoginAsync("tc29202.passwordchange@activeops.com", "Workware@1");
+        
+        // Wait for redirect to RTM and close dialog
+        await Expect(Page).ToHaveURLAsync(new Regex("/rtm"));
+        var rtmPage = new RtmPage(Page);
+        await rtmPage.CloseSelectActivityDialogIfPresentAsync();
         
         var userMenu = new UserMenuComponent(Page);
         await userMenu.NavigateToMyAccountAsync();
