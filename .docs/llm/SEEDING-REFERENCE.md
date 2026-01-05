@@ -12,10 +12,16 @@ Quick reference for test user IDs and test case mappings.
 - Role: 1 (All Access)
 - UserType: 1 (Team Member)
 
-## User Index
+## User ID Ranges
+
+- **9000-9099:** UI Test Users (OneShot - single execution tests)
+- **9100-9199:** UI Test Users (Repeatable - can run multiple times)
+- **9200-9299:** API Test Users (separate from UI to avoid conflicts)
+
+## UI Test Users (9000-9199)
 
 | User ID | Username | Test Case | Type | Purpose |
-|---------|----------|-----------|------|---------|
+|---------|----------|-----------|---------|---------|
 | 9001 | tc24155.duplicate@activeops.com | TC24155 | OneShot | Deleted user (username reuse) |
 | 9002 | tc24155.duplicate@activeops.com | TC24155 | Repeatable | Active user (same username) |
 | 9003 | tc24166.activation@activeops.com | TC24166 | OneShot | Account activation |
@@ -27,7 +33,43 @@ Quick reference for test user IDs and test case mappings.
 | 9100 | automation.teammember1@activeops.com | TC25057, TC24230 | Repeatable | General team member |
 | 9101 | automation.teammember2@activeops.com | TC25688 | OneShot | Language preference testing |
 
+## API Test Users (9200-9299)
+
+**Location:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/ApiTestUsers.sql` (TBD - to be created)
+
+**Purpose:** Separate user range for API testing to avoid conflicts with UI tests running in parallel.
+
+| User ID | Username | Test Case | Type | Purpose |
+|---------|----------|-----------|------|---------||
+| 9200 | api.tc25057.login@activeops.com | TC25057 API | Repeatable | Valid login via API |
+| 9201 | api.tc25058.invalidpw@activeops.com | TC25058 API | Repeatable | Invalid password test |
+| 9202 | api.tc25058.inactive@activeops.com | TC25058 API | OneShot | Inactive user login test |
+| 9203 | api.tc25058.noroles@activeops.com | TC25058 API | OneShot | User without roles |
+| 9204 | api.tc25060.tokenrefresh@activeops.com | TC25060 API | Repeatable | Token refresh testing |
+| 9205 | api.tc25059.activation@activeops.com | TC25059 API | OneShot | Email activation link expiry |
+| 9206-9299 | *Reserved for future API tests* | Various | Various | API test user pool |
+
+### API User Special Configurations
+
+**User 9202 (Inactive API User):**
+- User.Active: 0
+- StaffMember.Active: 0
+- Used to test API rejection of inactive users
+
+**User 9203 (No Roles API User):**
+- Has StaffMember, User records
+- NO UserToWorkgroupsToRoles entry
+- Used to test API role validation
+
+**User 9205 (Activation API User):**
+- ActivationStatusId: 2 (Invited)
+- SecurityStamp: 5A6B7C8D-9E0F-1A2B-3C4D-5E6F7A8B9C0D (for token generation)
+- PasswordHash: NULL (not activated yet)
+- Used for activation token expiry tests
+
 ## Test Coverage Map
+
+**UI Test Coverage (Login-25146):**
 
 **Login Suite (Login-25146):**
 - TC24155: Username Reuse After Deletion (Users 9001-9002) ✅
@@ -43,7 +85,15 @@ Quick reference for test user IDs and test case mappings.
 - TC25059: Email Link Expiry ❌ (NOT-UI)
 - TC25060: Token Refresh ❌ (NOT-UI)
 
-**Status: 11/12 tests automated (92%)**
+**Status: 9/12 UI tests automated (75%)**
+
+**API Test Coverage (Login-25146):**
+- TC25057 API: Valid Credentials Login (User 9200) 📝 (documented)
+- TC25058 API: Invalid Credentials Login (Users 9201-9203) 📝 (documented)
+- TC25060 API: Token Refresh (User 9204) 📝 (documented)
+- TC25059 API: Email Link Expiry (User 9205) ⚠️ (TODO - needs time manipulation approach)
+
+**Status: 3/4 API tests documented (75%), 0 implemented yet**
 
 ## Special User Configurations
 
