@@ -7,10 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 namespace AO.Automation.Shared.Helpers;
 
 /// <summary>
-/// Internal token generation implementation
+/// Generates JWT tokens for test automation scenarios
 /// Logic replicated from AO.WW.Core.Util.JwtIssuer to avoid cross-repo dependencies
 /// </summary>
-internal class TokenHelper
+public class TokenHelper
 {
     private readonly string _activationKey;
     private readonly string _resetPasswordKey;

@@ -28,8 +28,8 @@ public class ResetPasswordFromLoginScreen : PlaywrightTest, IClassFixture<Browse
         // SecurityStamp: 4B2C3D4E-5F6A-7B8C-9D0E-1F2A3B4C5D6E
         // AD: Step 1 - Generate reset token and navigate to reset page
         
-        var tokenService = new TokenService(Config.JwtActivationKey, Config.JwtResetPasswordKey);
-        var resetToken = tokenService.GenerateResetPasswordToken(
+        var tokenHelper = new TokenHelper(Config.JwtActivationKey, Config.JwtResetPasswordKey);
+        var resetToken = tokenHelper.GenerateResetPasswordToken(
             clientIdentifier: "ww7client",
             staffMemberId: 9006,
             username: "tc25061.reset@activeops.com",

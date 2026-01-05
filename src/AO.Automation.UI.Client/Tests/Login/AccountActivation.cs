@@ -27,8 +27,8 @@ public class AccountActivation : PlaywrightTest, IClassFixture<BrowserFixture>
         // SecurityStamp: 3A1B2C3D-4E5F-6A7B-8C9D-0E1F2A3B4C5D
         // AD: Step 1 - Generate activation token and navigate to activation page
         
-        var tokenService = new TokenService(Config.JwtActivationKey, Config.JwtResetPasswordKey);
-        var activationToken = tokenService.GenerateActivationToken(
+        var tokenHelper = new TokenHelper(Config.JwtActivationKey, Config.JwtResetPasswordKey);
+        var activationToken = tokenHelper.GenerateActivationToken(
             clientIdentifier: "ww7client",
             staffMemberId: 9003,
             email: "tc24166.activation@activeops.com",

@@ -138,6 +138,54 @@ Automated Playwright .NET API tests for ControliQ REST APIs, with database verif
 
 ---
 
+## Finding Schema and API Details
+
+### Database Schema Location
+
+**Table definitions:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Tables/`
+
+**ALWAYS check actual schema before writing SQL:**
+- Column names (e.g., `Created` not `LoginDateTime`)
+- Column types (e.g., `BIGINT` for Id, `NVARCHAR(64)` for RefreshToken)
+- Nullable columns
+- Constraints and indexes
+
+**Example:** Before querying UserLoginDetail, check:
+```
+WW7/ww7-api/AO.WW/AO.WW.DB.Client/Tables/UserLoginDetail.sql
+```
+
+**Database queries:**
+- Use `[dbo].[TableName]` format (no database name prefix)
+- Connection string already specifies database
+- Example: `SELECT * FROM [dbo].[UserLoginDetail]` ✅
+- NOT: `SELECT * FROM [WW7Client].[dbo].[UserLoginDetail]` ❌
+
+### API Contract Location
+
+**Swagger definition:** Available at uploaded swagger.json or runtime endpoint
+
+**ALWAYS check Swagger for:**
+- Actual endpoint paths
+- Request body structure
+- Response body structure (don't guess!)
+- Required vs optional fields
+
+**Example:** Login response is NOT a nested User object - it's flat with firstName, lastName, username, etc.
+
+### Local Environment Configuration
+
+**API Base URL:** `http://localhost:8080`
+**SQL Server:** `localhost,1434` (note the comma and port)
+**SQL Credentials:** sa / yourStrong(!)Password
+
+**Token Configuration:** `WW7/ww7-api/AO.WW/AO.WW.Web.Api.Client/appsettings.Containers.json`
+- `ww7client-timeout-general`: 30 (refresh token expiry for ww7client)
+- `refresh-token-expiry`: 90 (default fallback)
+- `access-token-expiry`: 30 (JWT token expiry)
+
+---
+
 ## Key Principles
 
 1. **Database verification is essential** - API tests verify both response AND database state

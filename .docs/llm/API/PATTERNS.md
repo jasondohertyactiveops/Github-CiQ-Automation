@@ -2,6 +2,11 @@
 
 This document provides reference implementations for common patterns in the API test suite.
 
+**IMPORTANT:** Before writing database queries, ALWAYS check the actual schema:
+- **Location:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Tables/[TableName].sql`
+- **Why:** Column names, types, and constraints must match exactly
+- **Example:** UserLoginDetail has `Created` (not `LoginDateTime`), no `SessionValidationToken`
+
 ---
 
 ## Table of Contents

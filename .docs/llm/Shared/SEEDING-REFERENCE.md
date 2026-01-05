@@ -4,7 +4,9 @@ Quick reference for test user IDs and test case mappings.
 
 ## Automation Test Users
 
-**Location:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/AutomationTestUsers.sql`
+**UI Test Users Location:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/UiTestUsers.sql`
+
+**API Test Users Location:** `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/ApiTestUsers.sql`
 
 **All users:**
 - Password: `Workware@1` (unless noted)

@@ -54,9 +54,9 @@ public class DatabaseHelper
     {
         const string sql = @"
             SELECT TOP 1 * 
-            FROM [WW7Client].[dbo].[UserLoginDetail] 
+            FROM [dbo].[UserLoginDetail] 
             WHERE UserId = @UserId 
-            ORDER BY LoginDateTime DESC";
+            ORDER BY Created DESC";
         
         return await QuerySingleOrDefaultAsync<Models.Database.UserLoginDetailRecord>(sql, new { UserId = userId });
     }
@@ -68,9 +68,9 @@ public class DatabaseHelper
     {
         const string sql = @"
             SELECT COUNT(*) 
-            FROM [WW7Client].[dbo].[UserLoginDetail] 
+            FROM [dbo].[UserLoginDetail] 
             WHERE UserId = @UserId 
-            AND LoginDateTime >= DATEADD(SECOND, -@Seconds, GETUTCDATE())";
+            AND Created >= DATEADD(SECOND, -@Seconds, GETUTCDATE())";
         
         return await ExecuteScalarAsync<int>(sql, new { UserId = userId, Seconds = seconds });
     }
