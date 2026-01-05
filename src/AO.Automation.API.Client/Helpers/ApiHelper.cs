@@ -1,32 +1,59 @@
-using System.Net.Http.Json;
+using Microsoft.Playwright;
 using AO.Automation.API.Client.Models;
 
 namespace AO.Automation.API.Client.Helpers;
 
 /// <summary>
-/// HTTP client wrapper for API requests
+/// API client wrapper using Playwright APIRequestContext
 /// </summary>
-public class ApiHelper
+public class ApiHelper : IAsyncDisposable
 {
-    private readonly HttpClient _httpClient;
+    private IPlaywright? _playwright;
+    private IAPIRequestContext? _requestContext;
+    private readonly string _baseUrl;
     
     public ApiHelper()
     {
-        var baseUrl = ApiTestConfig.Instance.ApiBaseUrl;
-        _httpClient = new HttpClient 
-        { 
-            BaseAddress = new Uri(baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+        _baseUrl = ApiTestConfig.Instance.ApiBaseUrl;
+    }
+    
+    /// <summary>
+    /// Initialize Playwright and create API request context
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        _playwright = await Playwright.CreateAsync();
+        _requestContext = await _playwright.APIRequest.NewContextAsync(new()
+        {
+            BaseURL = _baseUrl,
+            IgnoreHTTPSErrors = true
+        });
     }
     
     /// <summary>
     /// Set authentication token for subsequent requests
+    /// Call this to add Bearer token to all future requests
     /// </summary>
-    public void SetAuthToken(string token)
+    public async Task SetAuthTokenAsync(string token)
     {
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        if (_playwright == null)
+            throw new InvalidOperationException("ApiHelper not initialized. Call InitializeAsync first.");
+        
+        // Dispose old context and create new one with auth header
+        if (_requestContext != null)
+        {
+            await _requestContext.DisposeAsync();
+        }
+        
+        _requestContext = await _playwright.APIRequest.NewContextAsync(new()
+        {
+            BaseURL = _baseUrl,
+            IgnoreHTTPSErrors = true,
+            ExtraHTTPHeaders = new Dictionary<string, string>
+            {
+                ["Authorization"] = $"Bearer {token}"
+            }
+        });
     }
     
     /// <summary>
@@ -34,7 +61,14 @@ public class ApiHelper
     /// </summary>
     public async Task<ApiResponse<TResponse>> PostAsync<TResponse>(string endpoint, object body)
     {
-        var response = await _httpClient.PostAsJsonAsync(endpoint, body);
+        if (_requestContext == null)
+            throw new InvalidOperationException("ApiHelper not initialized. Call InitializeAsync first.");
+        
+        var response = await _requestContext.PostAsync(endpoint, new()
+        {
+            DataObject = body
+        });
+        
         return await ParseResponseAsync<TResponse>(response);
     }
     
@@ -43,20 +77,23 @@ public class ApiHelper
     /// </summary>
     public async Task<ApiResponse<TResponse>> GetAsync<TResponse>(string endpoint)
     {
-        var response = await _httpClient.GetAsync(endpoint);
+        if (_requestContext == null)
+            throw new InvalidOperationException("ApiHelper not initialized. Call InitializeAsync first.");
+        
+        var response = await _requestContext.GetAsync(endpoint);
         return await ParseResponseAsync<TResponse>(response);
     }
     
     /// <summary>
-    /// Parse HTTP response into ApiResponse wrapper
+    /// Parse Playwright API response into ApiResponse wrapper
     /// </summary>
-    private async Task<ApiResponse<T>> ParseResponseAsync<T>(HttpResponseMessage response)
+    private async Task<ApiResponse<T>> ParseResponseAsync<T>(IAPIResponse response)
     {
-        var statusCode = (int)response.StatusCode;
+        var statusCode = response.Status;
         
-        if (response.IsSuccessStatusCode)
+        if (response.Ok)
         {
-            var data = await response.Content.ReadFromJsonAsync<T>();
+            var data = await response.JsonAsync<T>();
             return new ApiResponse<T>
             {
                 StatusCode = statusCode,
@@ -65,11 +102,20 @@ public class ApiHelper
         }
         
         // Error response
-        var errorContent = await response.Content.ReadAsStringAsync();
+        var errorContent = await response.TextAsync();
         return new ApiResponse<T>
         {
             StatusCode = statusCode,
             Error = errorContent
         };
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (_requestContext != null)
+        {
+            await _requestContext.DisposeAsync();
+        }
+        _playwright?.Dispose();
     }
 }

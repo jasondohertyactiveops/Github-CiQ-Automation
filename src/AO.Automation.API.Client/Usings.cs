@@ -2,3 +2,4 @@
 global using Xunit;
 global using AO.Automation.API.Client.Config;
 global using AO.Automation.API.Client.Helpers;
+global using AO.Automation.API.Client.BaseClasses;
