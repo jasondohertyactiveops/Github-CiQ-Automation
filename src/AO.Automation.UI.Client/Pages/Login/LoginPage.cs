@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using AO.Automation.UI.Client.Pages.RTM;
 
 namespace AO.Automation.UI.Client.Pages.Login;
 
@@ -32,40 +33,30 @@ public class LoginPage
     /// <summary>
     /// Perform login with username and password
     /// </summary>
-    public async Task LoginAsync(string username, string password)
+    /// <param name="username">Username to login with</param>
+    /// <param name="password">Password to login with</param>
+    /// <param name="keepRedirectModalOpen">If false (default), automatically closes RTM "Select Your Activity" dialog. Set to true for RTM-specific tests.</param>
+    public async Task LoginAsync(string username, string password, bool keepRedirectModalOpen = false)
     {
         await UsernameInput.FillAsync(username);
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();
         
-        // After login, wait for any redirect and close RTM dialog if we land on /rtm
+        // Wait for navigation to complete (or timeout gracefully)
         try
         {
-            // Wait for any navigation to complete
             await _page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle, new() { Timeout = 5000 });
-            
-            // If on /rtm, close the RTM dialog
-            if (_page.Url.Contains("/rtm"))
-            {
-                // Wait for dialog to appear, then close it (longer timeout for reliability)
-                var rtmDialog = _page.GetByRole(AriaRole.Dialog, new() { Name = "Select Your Activity" });
-                try
-                {
-                    await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 5000 });
-                    var closeButton = _page.GetByTestId("close-btn");
-                    await closeButton.ClickAsync();
-                    // Wait for dialog to fully close (increased timeout)
-                    await rtmDialog.WaitForAsync(new() { State = WaitForSelectorState.Hidden, Timeout = 5000 });
-                }
-                catch
-                {
-                    // Dialog didn't appear or already closed
-                }
-            }
         }
-        catch
+        catch (TimeoutException)
         {
-            // Navigation didn't complete or dialog not present - continue
+            // NetworkIdle may not be reached if RTM dialog is loading - continue anyway
+        }
+        
+        // Close RTM dialog unless test needs it
+        if (!keepRedirectModalOpen && _page.Url.Contains("/rtm"))
+        {
+            var rtmPage = new RtmPage(_page);
+            await rtmPage.CloseSelectActivityDialogIfPresentAsync();
         }
     }
     
