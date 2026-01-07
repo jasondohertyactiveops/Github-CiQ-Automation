@@ -42,21 +42,21 @@ public class LoginPage
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();
         
-        // Wait for navigation to complete (or timeout gracefully)
+        // Wait for navigation to /rtm if that's where we're going
         try
         {
-            await _page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle, new() { Timeout = 5000 });
+            await _page.WaitForURLAsync(new System.Text.RegularExpressions.Regex("/rtm"), new() { Timeout = 10000 });
+            
+            // If we land on RTM and don't want the dialog, close it
+            if (!keepRedirectModalOpen)
+            {
+                var rtmPage = new RtmPage(_page);
+                await rtmPage.CloseSelectActivityDialogIfPresentAsync();
+            }
         }
         catch (TimeoutException)
         {
-            // NetworkIdle may not be reached if RTM dialog is loading - continue anyway
-        }
-        
-        // Close RTM dialog unless test needs it
-        if (!keepRedirectModalOpen && _page.Url.Contains("/rtm"))
-        {
-            var rtmPage = new RtmPage(_page);
-            await rtmPage.CloseSelectActivityDialogIfPresentAsync();
+            // Didn't navigate to /rtm - might be on a different page, that's fine
         }
     }
     

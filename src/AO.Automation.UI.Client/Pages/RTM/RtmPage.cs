@@ -25,21 +25,24 @@ public class RtmPage
     {
         try
         {
-            // Check if dialog is visible (short timeout)
-            await SelectActivityDialog.WaitForAsync(new() 
+            // Locate the close button within the dialog (more specific than just GetByTestId)
+            var closeButton = SelectActivityDialog.GetByTestId("close-btn");
+            
+            // Wait for close button to be visible AND clickable (Playwright auto-waits for actionability)
+            await closeButton.WaitForAsync(new() 
             { 
                 State = WaitForSelectorState.Visible, 
-                Timeout = 2000 
+                Timeout = 10000 
             });
             
-            // Dialog is present - press Escape to close
-            await _page.Keyboard.PressAsync("Escape");
+            // Click the close button - Playwright waits for it to be actionable
+            await closeButton.ClickAsync(new() { Timeout = 10000 });
             
-            // Wait for dialog to disappear
+            // Wait for dialog to completely disappear from DOM
             await SelectActivityDialog.WaitForAsync(new() 
             { 
                 State = WaitForSelectorState.Detached, 
-                Timeout = 5000 
+                Timeout = 10000 
             });
         }
         catch (TimeoutException)
