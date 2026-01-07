@@ -74,30 +74,30 @@ Use for: Independent validation checks on the same page.
 using Microsoft.Playwright;
 using Xunit;
 
-namespace AO.Automation.Tests.Login;
+namespace AO.Automation.UI.Client.Tests.Login;
 
 /// <summary>
 /// Azure Test Case: 2813
 /// Verify that the Login screen shows as expected
 /// </summary>
-[Trait("Suite", "Smoke")]
-[Trait("Suite", "Regression")]
+[Trait("Suite", "Login-25146")]
 [Trait("Feature", "Login")]
-public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
+public class LoginScreenValidation : PlaywrightTest, IClassFixture<BrowserFixture>
 {
+    public LoginScreenValidation(BrowserFixture browserFixture) : base(browserFixture)
+    {
+    }
+    
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
         // Navigate once, all tests share this page load
-        await Page.GotoAsync(Config.BaseUrl);
+        await Page.GotoAsync("/");
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CoreElementsArePresent()
     {
-        // Check essential login elements exist
         await Expect(Page.Locator(".controliq-logo")).ToBeVisibleAsync();
         await Expect(Page.GetByLabel("Username")).ToBeVisibleAsync();
         await Expect(Page.GetByLabel("Password")).ToBeVisibleAsync();
@@ -729,6 +729,45 @@ public async Task CanEditTeam()
 6. **Page objects for reuse** - Extract common actions
 7. **Helpers for utilities** - Don't repeat auth, waits, etc.
 8. **Comments for complex logic** - Explain why, not what
+
+---
+
+## Infrastructure & Architecture
+
+### BrowserFixture Pattern
+
+All UI tests use `IClassFixture<BrowserFixture>` to share browser instance:
+
+```csharp
+public class MyTest : PlaywrightTest, IClassFixture<BrowserFixture>
+{
+    public MyTest(BrowserFixture browserFixture) : base(browserFixture)
+    {
+    }
+}
+```
+
+**Why:**
+- Browser startup is expensive (~2 seconds)
+- One browser shared per test class
+- Each test gets its own Context and Page (isolated)
+- Disposed automatically by base class
+
+### PlaywrightTest Base Class
+
+Provides:
+- `Browser` - Shared browser instance
+- `Context` - Isolated browser context per test
+- `Page` - Isolated page per test
+- `Config` - Test configuration
+- Automatic cleanup via `DisposeAsync()`
+
+### Shared Project (AO.Automation.Shared)
+
+Utilities shared between UI and API test projects:
+- **TokenHelper** - Generate JWT tokens for activation/reset flows
+- Location: `AO.Automation.Shared.Helpers.TokenHelper`
+- Usage: `var token = new TokenHelper(activationKey, resetKey).GenerateActivationToken(...)`
 
 ---
 

@@ -79,8 +79,9 @@ Automated Playwright .NET API tests for ControliQ REST APIs, with database verif
 - Answer: **Dapper for database queries**
   - Lightweight, fast, simple
   - No ORM overhead
-  - Raw SQL queries (no stored procedures needed for verification)
-  - Easy to write specific verification queries
+  - Raw SQL queries directly on shared SqlConnection
+  - Use Dapper extension methods: `QuerySingleOrDefaultAsync`, `QueryAsync`, `ExecuteScalarAsync`
+  - Connection managed by ApiTestFixture base class
 
 **Q10: When to verify database state?**
 - Answer: **Always for state-changing operations:**
@@ -91,11 +92,13 @@ Automated Playwright .NET API tests for ControliQ REST APIs, with database verif
   - Optional for GET requests (verify data consistency)
 
 **Q11: Database connection - Share across tests or per-test?**
-- Answer: **DatabaseHelper with connection per query**
-  - Simple `DatabaseHelper` class
-  - Opens connection, executes query, closes connection
-  - No connection pooling complexity needed for tests
-  - Pattern: `await _dbHelper.QueryAsync<T>(sql, parameters)`
+- Answer: **Shared connection via ApiTestFixture**
+  - Fixture opens connection once in InitializeAsync
+  - All test methods use same connection
+  - Proper disposal handled by base class
+  - Pattern: Use Dapper directly on `DbConnection` property
+  - ApplicationIntent=ReadOnly for safety
+  - MultipleActiveResultSets=True (MARS) enabled
 
 ### Test Data
 
@@ -195,6 +198,46 @@ WW7/ww7-api/AO.WW/AO.WW.DB.Client/Tables/UserLoginDetail.sql
 5. **Test auth explicitly** - Dedicated tests for login/token operations
 6. **Document gaps** - Thunderclient is incomplete, build comprehensive coverage
 7. **Simple assertions** - xUnit Assert only, no FluentAssertions
+8. **Fixture pattern** - ApiTestFixture base class manages ApiHelper and DbConnection
+9. **OneShot tests** - Mark with `[Trait("Category", "OneShot")]` for tests that modify state permanently
+
+---
+
+## OneShot Tests
+
+**What are OneShot tests?**
+
+Tests that modify user/data state permanently and cannot be re-run without resetting the database.
+
+**Examples:**
+- Account activation (user goes from Invited to Active - can't activate twice)
+- Password changes (old password no longer works)
+- Account lockout (failed login counter increments)
+- Data deletion (can't delete same record twice)
+
+**How to mark:**
+```csharp
+[Trait("Category", "OneShot")]
+public class AccountActivationApi : IClassFixture<AccountActivationApiFixture>
+{
+    // Test activates user 9205 - requires fresh database to re-run
+}
+```
+
+**Running tests:**
+```powershell
+# Skip OneShot during development iterations
+dotnet test --filter "Category!=OneShot"
+
+# Run full suite (requires fresh DB after)
+dotnet test
+```
+
+**After running OneShot tests:**
+```powershell
+cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+.\recreate-databases.ps1
+```
 
 ---
 
