@@ -4,7 +4,7 @@ using AO.Automation.API.Client.Models.Responses.Login;
 using AO.Automation.API.Client.Models.Database;
 using Dapper;
 
-namespace AO.Automation.API.Client.Tests.Login;
+namespace AO.Automation.API.Client.Tests.Login25146;
 
 /// <summary>
 /// Fixture for ValidCredentialsLogin - runs setup ONCE for all tests
@@ -110,14 +110,16 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     public void Response_TokenExpiryIsReasonable()
     {
         Assert.NotNull(_fixture.LoginResponse);
+        Assert.NotNull(_fixture.LoginDetailRecord);
         
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtToken = tokenHandler.ReadJwtToken(_fixture.LoginResponse.Token);
         
+        // Verify token expires 30 minutes after login (access-token-expiry setting)
         var tokenExpiry = jwtToken.ValidTo;
-        var expectedExpiry = DateTime.UtcNow.AddMinutes(30);
-        var expiryDelta = Math.Abs((tokenExpiry - expectedExpiry).TotalMinutes);
-        Assert.True(expiryDelta < 5, $"Token expiry should be ~30 min from now, but delta is {expiryDelta} minutes");
+        var minutesDifference = (tokenExpiry - _fixture.LoginDetailRecord.Created).TotalMinutes;
+        
+        Assert.InRange(minutesDifference, 28, 32); // Should be ~30 minutes
     }
     
     [Fact]
@@ -171,11 +173,10 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     {
         Assert.NotNull(_fixture.LoginDetailRecord);
         
-        var refreshExpiry = _fixture.LoginDetailRecord.RefreshTokenExpiry;
-        var timeSinceNow = refreshExpiry - DateTime.UtcNow;
-        Assert.True(timeSinceNow.TotalMinutes > 20, 
-            $"RefreshToken should expire in the future (>20 min), but expires in {timeSinceNow.TotalMinutes} minutes");
-        Assert.True(timeSinceNow.TotalMinutes < 120, 
-            $"RefreshToken expiry should be reasonable (<120 min), but expires in {timeSinceNow.TotalMinutes} minutes");
+        // Verify RefreshToken expires 30 minutes after login
+        // (ww7client-timeout-general is set to 30 in appsettings.Containers.json)
+        var minutesDifference = (_fixture.LoginDetailRecord.RefreshTokenExpiry - _fixture.LoginDetailRecord.Created).TotalMinutes;
+        
+        Assert.InRange(minutesDifference, 28, 32); // Should be ~30 minutes
     }
 }

@@ -9,8 +9,8 @@ namespace AO.Automation.API.Client.BaseClasses;
 /// </summary>
 public abstract class ApiTestFixture : IAsyncLifetime
 {
-    protected ApiHelper ApiHelper { get; private set; } = null!;
-    protected SqlConnection DbConnection { get; private set; } = null!;
+    public ApiHelper ApiHelper { get; private set; } = null!;
+    public SqlConnection DbConnection { get; private set; } = null!;
     
     public async Task InitializeAsync()
     {

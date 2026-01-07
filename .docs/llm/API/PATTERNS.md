@@ -165,10 +165,21 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
 ```csharp
 using AO.Automation.API.Client.Models.Requests.Login;
 using AO.Automation.API.Client.Models.Responses.Login;
-using Microsoft.Data.SqlClient;
 using Dapper;
 
-namespace AO.Automation.API.Client.Tests.Login;
+namespace AO.Automation.API.Client.Tests.Login25146;
+
+/// <summary>
+/// Fixture provides shared ApiHelper and DbConnection for Theory tests
+/// </summary>
+public class InvalidCredentialsLoginFixture : ApiTestFixture
+{
+    protected override Task SetupAsync()
+    {
+        // Just initialize resources, Theory will make the API calls
+        return Task.CompletedTask;
+    }
+}
 
 /// <summary>
 /// Azure Test Case: 25058
@@ -177,27 +188,26 @@ namespace AO.Automation.API.Client.Tests.Login;
 [Trait("Suite", "Login-25146")]
 [Trait("Feature", "Login")]
 [Trait("API", "ClientAPI")]
-public class InvalidCredentialsLogin
+public class InvalidCredentialsLogin : IClassFixture<InvalidCredentialsLoginFixture>
 {
+    private readonly InvalidCredentialsLoginFixture _fixture;
+    
+    public InvalidCredentialsLogin(InvalidCredentialsLoginFixture fixture)
+    {
+        _fixture = fixture;
+    }
+    
     [Theory]
-    [InlineData("api.tc25058.invalidpw@activeops.com", "WrongPassword@1", 9201, "invalid password")]
-    [InlineData("api.tc25058.inactive@activeops.com", "Workware@1", 9202, "inactive user")]
-    [InlineData("api.tc25058.noroles@activeops.com", "Workware@1", 9203, "no roles")]
+    [InlineData("api.tc25058.invalidpw@activeops.com", "WrongPassword@1", 9201)]
+    [InlineData("api.tc25058.inactive@activeops.com", "Workware@1", 9202)]
+    [InlineData("api.tc25058.noroles@activeops.com", "Workware@1", 9203)]
     public async Task InvalidLogin_Returns401AndNoDbRecord(
         string username, 
         string password, 
-        int userId,
-        string scenario)
+        int userId)
     {
-        // Arrange - Initialize resources
-        var apiHelper = new ApiHelper();
-        await apiHelper.InitializeAsync();
-        
-        using var dbConnection = new SqlConnection(ApiTestConfig.Instance.DatabaseConnectionString);
-        await dbConnection.OpenAsync();
-        
         // Count login records before
-        var loginCountBefore = await dbConnection.ExecuteScalarAsync<int>(
+        var loginCountBefore = await _fixture.DbConnection.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
             new { UserId = userId });
         
@@ -209,30 +219,28 @@ public class InvalidCredentialsLogin
             Password = password
         };
         
-        var response = await apiHelper.PostAsync<LoginResponse>("/api/user/login", request);
+        var response = await _fixture.ApiHelper.PostAsync<LoginResponse>("/api/user/login", request);
         
         // Assert - Response shows error
         Assert.Equal(401, response.StatusCode);
         Assert.NotNull(response.Error);
+        Assert.False(response.IsSuccess);
         
         // Assert - Database unchanged (no login record created)
-        var loginCountAfter = await dbConnection.ExecuteScalarAsync<int>(
+        var loginCountAfter = await _fixture.DbConnection.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
             new { UserId = userId });
         
         Assert.Equal(loginCountBefore, loginCountAfter);
-        
-        // Cleanup
-        await apiHelper.DisposeAsync();
     }
 }
 ```
 
 ### Pattern 2 Benefits
 
-- ✅ One test method handles multiple scenarios
-- ✅ Test output clearly shows which scenario failed
-- ✅ Less code than separate tests or fixtures
+- ✅ One test method handles 3 scenarios
+- ✅ Shared ApiHelper and DbConnection (no resource waste)
+- ✅ Test output shows which scenario failed
 - ✅ Perfect for negative testing and edge cases
 
 ---
@@ -342,21 +350,46 @@ public void Database_UserRecordExists()
 
 ### Test Error Response (No Database Changes)
 
+**Use Theory with fixture for error scenarios:**
+
 ```csharp
-[Theory]
-[InlineData("invalid-input-1")]
-[InlineData("invalid-input-2")]
-public async Task InvalidRequest_Returns400AndNoDbChange(string invalidInput)
+public class InvalidInputFixture : ApiTestFixture
 {
-    var apiHelper = new ApiHelper();
-    await apiHelper.InitializeAsync();
+    protected override Task SetupAsync() => Task.CompletedTask;
+}
+
+public class InvalidInputTests : IClassFixture<InvalidInputFixture>
+{
+    private readonly InvalidInputFixture _fixture;
     
-    // Count records before
-    // Make API call
-    // Assert error response
-    // Assert record count unchanged
+    public InvalidInputTests(InvalidInputFixture fixture)
+    {
+        _fixture = fixture;
+    }
     
-    await apiHelper.DisposeAsync();
+    [Theory]
+    [InlineData("invalid-input-1", 9200)]
+    [InlineData("invalid-input-2", 9200)]
+    public async Task InvalidRequest_Returns400AndNoDbChange(string invalidInput, int userId)
+    {
+        // Count records before
+        var countBefore = await _fixture.DbConnection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM [dbo].[SomeTable] WHERE UserId = @UserId",
+            new { UserId = userId });
+        
+        // Make API call with invalid data
+        var response = await _fixture.ApiHelper.PostAsync<SomeResponse>("/api/endpoint", invalidInput);
+        
+        // Assert error response
+        Assert.Equal(400, response.StatusCode);
+        
+        // Assert record count unchanged
+        var countAfter = await _fixture.DbConnection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM [dbo].[SomeTable] WHERE UserId = @UserId",
+            new { UserId = userId });
+        
+        Assert.Equal(countBefore, countAfter);
+    }
 }
 ```
 
@@ -484,6 +517,20 @@ ORDER BY Created DESC
 - C# models use PascalCase (`Token`, `RefreshToken`)
 - Always add `[JsonPropertyName("fieldName")]` attributes
 
+### Validate Expiry Times Using Database Timestamps
+
+**Use database timestamps as source of truth:**
+```csharp
+// ✅ GOOD - Compare expiry to actual DB timestamp
+var minutesDifference = (tokenExpiry - loginRecord.Created).TotalMinutes;
+Assert.InRange(minutesDifference, 28, 32); // Expect ~30 minutes
+
+// ❌ BAD - Compare to DateTime.UtcNow (drifts during test execution)
+var minutesUntilExpiry = (tokenExpiry - DateTime.UtcNow).TotalMinutes;
+```
+
+**Why:** Database `Created` timestamp is when the token was actually generated. No clock drift.
+
 ### Fixture vs Theory Decision
 
 **Use Fixture (Pattern 1) when:**
@@ -498,15 +545,26 @@ ORDER BY Created DESC
 
 ### Connection Management
 
-**Pattern 1 (Fixture):**
-- Base class manages connection
-- Use `DbConnection` property
-- Shared across all test methods
+**Both Pattern 1 and Pattern 2 use fixtures:**
+- Fixture extends `ApiTestFixture`
+- Base class initializes `ApiHelper` and `DbConnection` once
+- All test methods/runs share these resources
+- Automatic disposal via base class
 
-**Pattern 2 (Theory):**
-- Create connection per test run
-- Use `using var dbConnection = new SqlConnection(...)`
-- Dispose after test
+**ApiTestFixture provides:**
+```csharp
+public ApiHelper ApiHelper { get; private set; }      // Readonly (private setter)
+public SqlConnection DbConnection { get; private set; } // Readonly (private setter)
+```
+
+**Never create resources in tests:**
+```csharp
+// ❌ BAD - Creates new connection per test run
+var dbConnection = new SqlConnection(...);
+
+// ✅ GOOD - Use shared connection from fixture
+var count = await _fixture.DbConnection.ExecuteScalarAsync<int>(...);
+```
 
 ---
 
