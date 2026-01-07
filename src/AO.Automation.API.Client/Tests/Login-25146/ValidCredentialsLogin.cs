@@ -173,10 +173,10 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     {
         Assert.NotNull(_fixture.LoginDetailRecord);
         
-        // Verify RefreshToken expires 30 minutes after login
-        // (ww7client-timeout-general is set to 30 in appsettings.Containers.json)
+        // Verify RefreshToken expires 90 minutes after login
+        // (ww7client-timeout-general is set to 90 in appsettings.Containers.json)
         var minutesDifference = (_fixture.LoginDetailRecord.RefreshTokenExpiry - _fixture.LoginDetailRecord.Created).TotalMinutes;
         
-        Assert.InRange(minutesDifference, 28, 32); // Should be ~30 minutes
+        Assert.InRange(minutesDifference, 88, 92); // Should be ~90 minutes
     }
 }

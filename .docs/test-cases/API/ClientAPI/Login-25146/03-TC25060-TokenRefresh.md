@@ -31,8 +31,10 @@ Login creates refresh token with correct expiry timing (90 min from login, 60 mi
 - [ ] **UserLoginDetail:**
   - Login record created
   - RefreshToken matches response
-  - RefreshTokenExpiry is reasonable (around 90 min from login)
-  - RefreshTokenExpiry is approximately 60 min AFTER token expiry
+  - RefreshTokenExpiry is ~90 min from login
+  - RefreshToken expires ~60 min AFTER access token expires
+
+**Note:** In local environment, `access-token-expiry` is 30 minutes and `ww7client-timeout-general` is 90 minutes in `appsettings.Containers.json`. This creates a 60-minute window for token refresh after access token expires.
 
 ---
 
