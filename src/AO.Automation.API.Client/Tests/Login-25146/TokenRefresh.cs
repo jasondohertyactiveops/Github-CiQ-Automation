@@ -197,4 +197,25 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
         
         Assert.InRange(minutesDifference, 88, 92); // Should be ~90 minutes
     }
+    
+    [Fact]
+    public async Task NewToken_CanBeUsedForAuthenticatedRequest()
+    {
+        Assert.NotNull(_fixture.RefreshResponse);
+        
+        // Create separate ApiHelper to test new token in isolation
+        var testHelper = new ApiHelper();
+        await testHelper.InitializeAsync();
+        await testHelper.SetAuthTokenAsync(_fixture.RefreshResponse.Token);
+        
+        // Call logout endpoint which requires valid authentication
+        // If token is invalid, this will return 401
+        var logoutResponse = await testHelper.PostAsync<object>("/api/user/logout", new {});
+        
+        // 204 No Content means token was valid and logout succeeded
+        // Note: Swagger documents 202, but API actually returns 204
+        Assert.Equal(204, logoutResponse.StatusCode);
+        
+        await testHelper.DisposeAsync();
+    }
 }

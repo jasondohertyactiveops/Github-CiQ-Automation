@@ -109,7 +109,23 @@ public class ApiHelper : IAsyncDisposable
         
         if (response.Ok)
         {
-            var data = await response.JsonAsync<T>();
+            // Get response text once
+            var responseText = await response.TextAsync();
+            
+            if (string.IsNullOrWhiteSpace(responseText))
+            {
+                // No content (e.g., 202 Accepted, 204 No Content)
+                return new ApiResponse<T>
+                {
+                    StatusCode = statusCode,
+                    Data = default
+                };
+            }
+            
+            // Deserialize from text
+            var data = System.Text.Json.JsonSerializer.Deserialize<T>(responseText, 
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
             return new ApiResponse<T>
             {
                 StatusCode = statusCode,

@@ -2,93 +2,90 @@
 
 **Azure Test Case:** 25060  
 **Suite:** Login-25146  
-**Thunderclient:** ❌ Not implemented (only has re-login workaround)  
-**Test Users:** 9200-9299 range (active user with roles)
+**Thunderclient:** ❌ Not implemented  
+**Test Users:** 9204 (api.tc25060.tokenrefresh@activeops.com)  
+**Status:** ✅ **Implemented**
 
 ---
 
 ## What This Tests
 
-Login creates refresh token with correct expiry timing (90 min from login, 60 min after main token expires).
+Token refresh endpoint allows obtaining new access token using expired token + valid refresh token, enabling sessions to continue without re-login.
 
 ---
 
 ## Test Checklist
 
-### Request
-- Method: POST
+### Initial Login
+- [x] POST /api/user/login with valid credentials
+- [x] Capture access token (30 min expiry)
+- [x] Capture refresh token (90 min expiry)
+- [x] Extract SessionValidationToken from access token for reuse
+
+### Generate Expired Token
+- [x] Use TokenHelper to create expired access token (expired 5 mins ago)
+- [x] Reuse SessionValidationToken from real login (required for validation)
+- [x] Match all claims from real token (username, staffMemberId, clientIdentifier, location)
+
+### Token Refresh Request
+- Method: PUT
 - Endpoint: `/api/user/login`
-- Body: `{ clientIdentifier, username, password }`
+- Body: `{ token: expired_token, refreshToken: valid_refresh_token }`
 
 ### Response Checks
-- [ ] Status code is 200
-- [ ] Response contains: token, refreshToken
-- [ ] Token is valid JWT
-- [ ] Token expiry is reasonable (around 30 min)
-- [ ] RefreshToken is valid GUID
+- [x] Status code is 200
+- [x] Response contains: token, refreshToken
+- [x] New token is valid JWT (3-part structure)
+- [x] New token is different from expired token
+- [x] New refresh token is different from old refresh token
+- [x] New token expiry is ~30 min from refresh time
 
 ### Database Checks
-- [ ] **UserLoginDetail:**
-  - Login record created
-  - RefreshToken matches response
-  - RefreshTokenExpiry is ~90 min from login
-  - RefreshToken expires ~60 min AFTER access token expires
+- [x] **UserLoginDetail:**
+  - Record updated with new refresh token
+  - New RefreshToken matches response
+  - New RefreshToken is different from old one
+  - RefreshTokenExpiry is ~90 min from refresh time
 
-**Note:** In local environment, `access-token-expiry` is 30 minutes and `ww7client-timeout-general` is 90 minutes in `appsettings.Containers.json`. This creates a 60-minute window for token refresh after access token expires.
+### End-to-End Validation
+- [x] New token can be used for authenticated API requests
+- [x] Tested by calling POST /api/user/logout with new token
+- [x] Returns 204 No Content (token accepted, logout succeeded)
 
 ---
 
-## Future: Token Refresh Endpoint (Bonus)
+## Implementation Notes
 
-Once refresh token endpoint is identified:
+**Token Generation:**
+- Uses `TokenHelper.GenerateAccessToken()` with negative expiry
+- Must reuse `SessionValidationToken` from real login (not random GUID)
+- Claim must be `StaffMemberLocation` (not `Location`)
 
-### Request
-- Method: POST (TBD)
-- Endpoint: `/api/user/refresh-token` (TBD)
-- Body: `{ refreshToken }`
+**Configuration:**
+- Access token expiry: 30 minutes (`access-token-expiry`)
+- Refresh token expiry: 90 minutes (`ww7client-timeout-general`)
+- 60-minute window for token refresh after access token expires
 
-### Response Checks
-- [ ] Status code is 200
-- [ ] New token returned
-- [ ] New token has fresh expiry
-
-### Database Checks
-- [ ] **UserLoginDetail:**
-  - New/updated record with fresh RefreshTokenExpiry
+**Swagger Discrepancy:**
+- Logout endpoint: Swagger documents 202, API returns 204
+- Test expects actual behavior (204)
 
 ---
 
 ## Gap Analysis
 
-**Thunderclient Status:** ❌ **Missing - Only has re-login workaround**
+**Thunderclient Status:** ❌ **Completely missing**
 
-**What Exists:**
-- `07-planning/relogin-for-token-refresh/login.json` - just calls login again
-- This is a workaround, not actual token refresh testing
+**What Was Missing:**
+- Token refresh endpoint not tested at all
+- Only workaround was re-login (defeats purpose of refresh tokens)
+- No validation of token timing
+- No database verification
+- Security-critical functionality untested
 
-**What's Missing:**
-- No actual refresh token endpoint identified or tested
-- No token expiry validation
-- No refresh token expiry timing validation
-- No database verification of token timing
-- Refresh mechanism completely untested
-
-**Why Critical:**
-- Core session management functionality
-- Token timing directly impacts security
-- Currently only tested in Cypress (wrong layer)
-
-**Priority:** 🔴 **Critical** (Priority 2 - after invalid login)
-
-**Action Items:**
-- Identify actual refresh token endpoint
-- Migrate Cypress timing tests to proper API layer
-
----
-
-## Notes
-
-- Was marked "NOT-UI" - perfect for API testing
-- Currently only tested in Cypress via DB queries (wrong layer)
-- Refresh token endpoint needs to be identified
-- Timing validation is core security requirement
+**Now Implemented:**
+- ✅ Full token refresh flow
+- ✅ Expired token generation for testing
+- ✅ Database verification of refresh token updates
+- ✅ End-to-end validation (new token actually works)
+- ✅ Timing validation (30 min access, 90 min refresh)
