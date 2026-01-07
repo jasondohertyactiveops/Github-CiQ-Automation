@@ -29,4 +29,20 @@ public class ApiTestConfig
     
     public string DatabaseConnectionString => _configuration["Database:ConnectionString"]
         ?? throw new InvalidOperationException("Database:ConnectionString not configured");
+    
+    // JWT keys from container config (match appsettings.Containers.json)
+    public string JwtSecurityKey => "s3cu1tyJwtT0k3nK3ys3cu1tyJwtT0k3B";
+    public string JwtActivationKey => "s3cu1tyJwtT0k3nK3ys3cu1tyJwtT0k3C";
+    public string JwtResetPasswordKey => "s3cu1tyJwtT0k3nK3ys3cu1tyJwtT0k3D";
+    
+    /// <summary>
+    /// Get TokenHelper configured with correct JWT keys for token generation
+    /// </summary>
+    public AO.Automation.Shared.Helpers.TokenHelper GetTokenHelper()
+    {
+        return new AO.Automation.Shared.Helpers.TokenHelper(
+            JwtActivationKey, 
+            JwtResetPasswordKey, 
+            JwtSecurityKey);
+    }
 }

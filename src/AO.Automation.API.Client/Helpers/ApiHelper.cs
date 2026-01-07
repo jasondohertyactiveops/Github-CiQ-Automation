@@ -85,6 +85,22 @@ public class ApiHelper : IAsyncDisposable
     }
     
     /// <summary>
+    /// Generic PUT request
+    /// </summary>
+    public async Task<ApiResponse<TResponse>> PutAsync<TResponse>(string endpoint, object body)
+    {
+        if (_requestContext == null)
+            throw new InvalidOperationException("ApiHelper not initialized. Call InitializeAsync first.");
+        
+        var response = await _requestContext.PutAsync(endpoint, new()
+        {
+            DataObject = body
+        });
+        
+        return await ParseResponseAsync<TResponse>(response);
+    }
+    
+    /// <summary>
     /// Parse Playwright API response into ApiResponse wrapper
     /// </summary>
     private async Task<ApiResponse<T>> ParseResponseAsync<T>(IAPIResponse response)
