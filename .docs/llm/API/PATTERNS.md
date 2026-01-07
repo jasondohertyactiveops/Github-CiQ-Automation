@@ -7,19 +7,42 @@
 
 ---
 
-## Table of Contents
+## Choosing the Right Pattern
 
-1. [Test Fixture Pattern](#test-fixture-pattern)
-2. [Test Class Pattern](#test-class-pattern)
-3. [Model Patterns](#model-patterns)
-4. [Common Scenarios](#common-scenarios)
-5. [OneShot Tests](#oneshot-tests)
+### Pattern 1: Fixture with Multiple Focused Tests
+
+**When to use:**
+- Testing one API operation with many assertions
+- Want to reuse expensive setup (API call, DB queries)
+- Need clear isolation of what failed
+
+**Example:** TC25057 - Valid login has 12 different validations (token format, claims, DB state, etc.)
+
+### Pattern 2: Theory with InlineData
+
+**When to use:**
+- Same test logic with different inputs
+- Testing multiple error scenarios
+- Negative testing (invalid inputs)
+
+**Example:** TC25058 - Invalid login with 3 scenarios (wrong password, inactive user, no roles)
+
+### Pattern 3: Simple Single Test
+
+**When to use:**
+- Simple API call with few assertions
+- Quick smoke tests
+- One-off scenarios
+
+**Example:** Simple GET endpoint validation
 
 ---
 
-## Test Fixture Pattern
+## Pattern 1: Fixture with Multiple Focused Tests
 
-**Use ApiTestFixture base class for all API test fixtures**
+**Complete implementation of TC25057 showing fixture pattern**
+
+### Step 1: Create Fixture Class
 
 ```csharp
 using AO.Automation.API.Client.Models.Requests.Login;
@@ -30,7 +53,7 @@ using Dapper;
 namespace AO.Automation.API.Client.Tests.Login;
 
 /// <summary>
-/// Fixture for ValidCredentialsLogin - runs setup ONCE for all tests in the class
+/// Fixture runs setup ONCE for all tests in ValidCredentialsLogin class
 /// </summary>
 public class ValidCredentialsLoginFixture : ApiTestFixture
 {
@@ -42,7 +65,7 @@ public class ValidCredentialsLoginFixture : ApiTestFixture
     
     protected override async Task SetupAsync()
     {
-        // ApiHelper and DbConnection are already initialized by base class
+        // ApiHelper and DbConnection already initialized by base class
         
         // Make API call
         var request = new LoginRequest
@@ -56,7 +79,7 @@ public class ValidCredentialsLoginFixture : ApiTestFixture
         LoginStatusCode = response.StatusCode;
         LoginResponse = response.Data;
         
-        // Query database (using Dapper directly on DbConnection)
+        // Query database using Dapper directly on DbConnection
         UserRecord = await DbConnection.QuerySingleOrDefaultAsync<UserRecord>(
             "SELECT Id, UserName, StaffMemberId FROM [dbo].[User] WHERE UserName = @Username",
             new { Username = request.Username });
@@ -71,18 +94,7 @@ public class ValidCredentialsLoginFixture : ApiTestFixture
 }
 ```
 
-**Benefits:**
-- ✅ ApiHelper already initialized (Playwright APIRequestContext)
-- ✅ DbConnection already open (shared across all tests)
-- ✅ Dispose handled automatically
-- ✅ Setup runs ONCE for all tests in class
-- ✅ No boilerplate
-
----
-
-## Test Class Pattern
-
-**Use IClassFixture<T> to share fixture data**
+### Step 2: Create Test Class
 
 ```csharp
 /// <summary>
@@ -100,6 +112,8 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     {
         _fixture = fixture;
     }
+    
+    // Response validation tests
     
     [Fact]
     public void Response_HasSuccessStatusCode()
@@ -122,16 +136,104 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
         Assert.True(_fixture.LoginDetailRecord.Id > 0);
     }
     
-    // ... more focused test methods
+    [Fact]
+    public void Database_RefreshTokenMatchesResponse()
+    {
+        Assert.NotNull(_fixture.LoginResponse);
+        Assert.NotNull(_fixture.LoginDetailRecord);
+        Assert.Equal(_fixture.LoginResponse.RefreshToken, _fixture.LoginDetailRecord.RefreshToken);
+    }
+    
+    // ... 8 more focused test methods
 }
 ```
 
-**Pattern Benefits:**
-- ✅ One API call shared across 10+ tests
-- ✅ One DB connection for all queries
-- ✅ Clear test names (immediate failure identification)
-- ✅ Can filter: `--filter "FullyQualifiedName~Response"` or `~Database`
-- ✅ Efficient resource usage
+### Pattern 1 Benefits
+
+- ✅ One API call shared across 12 tests
+- ✅ One DB connection for all queries  
+- ✅ Clear test names (know exactly what failed)
+- ✅ Can filter tests: `--filter "FullyQualifiedName~Response"`
+- ✅ Efficient resource usage (critical for 100+ test classes)
+
+---
+
+## Pattern 2: Theory with InlineData
+
+**Use for testing same validation logic with different inputs**
+
+```csharp
+using AO.Automation.API.Client.Models.Requests.Login;
+using AO.Automation.API.Client.Models.Responses.Login;
+using Microsoft.Data.SqlClient;
+using Dapper;
+
+namespace AO.Automation.API.Client.Tests.Login;
+
+/// <summary>
+/// Azure Test Case: 25058
+/// Invalid credentials are rejected by API
+/// </summary>
+[Trait("Suite", "Login-25146")]
+[Trait("Feature", "Login")]
+[Trait("API", "ClientAPI")]
+public class InvalidCredentialsLogin
+{
+    [Theory]
+    [InlineData("api.tc25058.invalidpw@activeops.com", "WrongPassword@1", 9201, "invalid password")]
+    [InlineData("api.tc25058.inactive@activeops.com", "Workware@1", 9202, "inactive user")]
+    [InlineData("api.tc25058.noroles@activeops.com", "Workware@1", 9203, "no roles")]
+    public async Task InvalidLogin_Returns401AndNoDbRecord(
+        string username, 
+        string password, 
+        int userId,
+        string scenario)
+    {
+        // Arrange - Initialize resources
+        var apiHelper = new ApiHelper();
+        await apiHelper.InitializeAsync();
+        
+        using var dbConnection = new SqlConnection(ApiTestConfig.Instance.DatabaseConnectionString);
+        await dbConnection.OpenAsync();
+        
+        // Count login records before
+        var loginCountBefore = await dbConnection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
+            new { UserId = userId });
+        
+        // Act - Make API call with invalid credentials
+        var request = new LoginRequest
+        {
+            ClientIdentifier = "ww7client",
+            Username = username,
+            Password = password
+        };
+        
+        var response = await apiHelper.PostAsync<LoginResponse>("/api/user/login", request);
+        
+        // Assert - Response shows error
+        Assert.Equal(401, response.StatusCode);
+        Assert.NotNull(response.Error);
+        
+        // Assert - Database unchanged (no login record created)
+        var loginCountAfter = await dbConnection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
+            new { UserId = userId });
+        
+        Assert.Equal(loginCountBefore, loginCountAfter);
+        
+        // Cleanup
+        await apiHelper.DisposeAsync();
+    }
+}
+```
+
+### Pattern 2 Benefits
+
+- ✅ One test method handles multiple scenarios
+- ✅ Test output clearly shows which scenario failed
+- ✅ Less code than separate tests or fixtures
+- ✅ Perfect for negative testing and edge cases
 
 ---
 
@@ -203,7 +305,7 @@ public class UserLoginDetailRecord
 
 ## Common Scenarios
 
-### Scenario 1: Test Successful POST with Database Verification
+### Test POST Creates Database Record
 
 ```csharp
 public class CreateUserFixture : ApiTestFixture
@@ -235,53 +337,26 @@ public void Response_HasCreatedStatusCode()
 public void Database_UserRecordExists()
 {
     Assert.NotNull(_fixture.CreatedUser);
-    Assert.Equal(request.Username, _fixture.CreatedUser.UserName);
 }
 ```
 
-### Scenario 2: Test Error Response (No Database Changes)
+### Test Error Response (No Database Changes)
 
 ```csharp
-public class InvalidLoginFixture : ApiTestFixture
+[Theory]
+[InlineData("invalid-input-1")]
+[InlineData("invalid-input-2")]
+public async Task InvalidRequest_Returns400AndNoDbChange(string invalidInput)
 {
-    public int StatusCode { get; private set; }
-    public string? ErrorMessage { get; private set; }
-    public int LoginCountBefore { get; private set; }
-    public int LoginCountAfter { get; private set; }
+    var apiHelper = new ApiHelper();
+    await apiHelper.InitializeAsync();
     
-    protected override async Task SetupAsync()
-    {
-        var userId = 9201;
-        
-        // Count logins before
-        LoginCountBefore = await DbConnection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
-            new { UserId = userId });
-        
-        // Make API call with invalid credentials
-        var request = new LoginRequest { /* invalid */ };
-        var response = await ApiHelper.PostAsync<LoginResponse>("/api/user/login", request);
-        
-        StatusCode = response.StatusCode;
-        ErrorMessage = response.Error;
-        
-        // Count logins after
-        LoginCountAfter = await DbConnection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = @UserId",
-            new { UserId = userId });
-    }
-}
-
-[Fact]
-public void Response_HasUnauthorizedStatus()
-{
-    Assert.Equal(401, _fixture.StatusCode);
-}
-
-[Fact]
-public void Database_NoLoginRecordCreated()
-{
-    Assert.Equal(_fixture.LoginCountBefore, _fixture.LoginCountAfter);
+    // Count records before
+    // Make API call
+    // Assert error response
+    // Assert record count unchanged
+    
+    await apiHelper.DisposeAsync();
 }
 ```
 
@@ -331,8 +406,8 @@ cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
 ### OneShot User Management
 
 **Document which user consumed:**
-- Update seeding script comment
-- Mark user as consumed in test documentation
+- Update seeding script comment with test name
+- Mark user as consumed in SEEDING-REFERENCE.md
 - Example: User 9205 consumed by TC25059 activation test
 
 ---
@@ -352,6 +427,8 @@ SELECT Id, UserId, RefreshToken, RefreshTokenExpiry, Created
 FROM [dbo].[UserLoginDetail]
 ```
 
+**Why:** Less data transfer, clearer intent, fails fast if column doesn't exist
+
 ### No Database Prefix
 
 **Bad:**
@@ -364,44 +441,91 @@ SELECT * FROM [WW7Client].[dbo].[User]
 SELECT Id, UserName FROM [dbo].[User]
 ```
 
+**Why:** Connection string already specifies database
+
 ### Always Use Parameters
 
 **Bad:**
 ```sql
-$"SELECT * FROM [dbo].[User] WHERE UserName = '{username}'"
+$"SELECT * FROM [dbo].[User] WHERE UserName = '{username}'"  // SQL injection risk!
 ```
 
 **Good:**
 ```sql
-await DbConnection.QuerySingleOrDefaultAsync<T>(
+await DbConnection.QuerySingleOrDefaultAsync<UserRecord>(
     "SELECT Id, UserName FROM [dbo].[User] WHERE UserName = @Username",
     new { Username = username });
 ```
 
 ### Use TOP 1 for Single Results
 
+**When querying for most recent:**
 ```sql
-SELECT TOP 1 Id, RefreshToken 
+SELECT TOP 1 Id, RefreshToken, Created 
 FROM [dbo].[UserLoginDetail] 
 WHERE UserId = @UserId 
 ORDER BY Created DESC
 ```
+
+**Why:** Prevents "Sequence contains more than one element" errors
 
 ---
 
 ## Tips
 
 ### Check Schema First
-- Always view table definition before writing queries
-- Column names must match exactly (case-sensitive in some DBs)
-- Check data types (BIGINT vs INT, NVARCHAR length, etc.)
+- Always view `Tables/[TableName].sql` before writing queries
+- Column names must match exactly
+- Check data types (BIGINT vs INT, NVARCHAR length)
+- Note nullable columns
 
 ### Use JsonPropertyName
-- API returns camelCase JSON
-- C# models use PascalCase properties
+- API returns camelCase JSON (`token`, `refreshToken`)
+- C# models use PascalCase (`Token`, `RefreshToken`)
 - Always add `[JsonPropertyName("fieldName")]` attributes
 
-### Fixture Scope
-- One fixture per logical test scenario
-- Share expensive operations (API calls, DB queries)
-- Keep test methods simple and focused
+### Fixture vs Theory Decision
+
+**Use Fixture (Pattern 1) when:**
+- Many different assertions on same API call
+- Expensive setup you want to reuse
+- Testing complex response structure
+
+**Use Theory (Pattern 2) when:**
+- Same assertions, different inputs
+- Error scenarios with similar validation
+- Less than 5-6 assertions total
+
+### Connection Management
+
+**Pattern 1 (Fixture):**
+- Base class manages connection
+- Use `DbConnection` property
+- Shared across all test methods
+
+**Pattern 2 (Theory):**
+- Create connection per test run
+- Use `using var dbConnection = new SqlConnection(...)`
+- Dispose after test
+
+---
+
+## Quick Reference
+
+| Need to... | Code... |
+|------------|---------|
+| Make POST request | `await ApiHelper.PostAsync<TResponse>(endpoint, body)` |
+| Query single record | `await DbConnection.QuerySingleOrDefaultAsync<T>(sql, params)` |
+| Query multiple | `await DbConnection.QueryAsync<T>(sql, params)` |
+| Count records | `await DbConnection.ExecuteScalarAsync<int>(sql, params)` |
+| Check response | `Assert.Equal(200, response.StatusCode)` |
+| Check DB record | `Assert.NotNull(record)` |
+
+---
+
+## Need More Examples?
+
+- Check actual test files in `Tests/Login/` for working examples
+- TC25057 (ValidCredentialsLogin.cs) - Pattern 1 example
+- Check Swagger for API contracts
+- Check `Tables/` folder for database schemas
