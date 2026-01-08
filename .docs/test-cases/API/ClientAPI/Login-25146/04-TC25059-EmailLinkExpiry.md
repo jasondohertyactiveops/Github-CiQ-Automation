@@ -1,103 +1,91 @@
-# TC25059: Email Activation Link 24hr Validity API
+# TC25059: Account Activation Token Validation
 
 **Azure Test Case:** 25059  
 **Suite:** Login-25146  
-**Thunderclient:** ❌ Not implemented  
-**Test Users:** 9200-9299 range (invited status, no password set)  
-**Source:** Azure DevOps test suite (marked as "NOT-UI" during UI analysis)
+**Status:** ⏳ Ready to Implement  
+**Type:** OneShot (user 9205 consumed)  
+**User:** 9205 (api.tc25059.activation@activeops.com, SecurityStamp: 5A6B7C8D-9E0F-1A2B-3C4D-5E6F7A8B9C0D)
 
 ---
 
 ## What This Tests
 
-Activation tokens expire after 24 hours and new tokens invalidate old ones.
+Activation endpoint validates token expiry correctly:
+- Expired tokens (>24 hours) are rejected
+- Valid tokens (within 24 hours) activate users successfully
+
+**Scope:** Testing `/api/Accounts/activate` endpoint (login flow). NOT testing admin resend or email sending.
 
 ---
 
-## Test Checklist
+## Scenarios
 
-### Scenario 1: Valid Token (Within 24 Hours)
+### 1. Expired Token (Run First)
 
-#### Request
-- Method: POST (TBD - endpoint needs identification)
-- Endpoint: `/api/user/activate` (TBD)
-- Body: `{ token, password }`
+**Token:** Generated with `expiryMinutes: -1500` (expired 25 hours ago)  
+**Request:** POST /api/Accounts/activate with token in Authorization header  
+**Body:** `{ username, password }`
 
-#### Response Checks
-- [ ] Status code is 200
-- [ ] Success message returned
+**Expected:**
+- Status: 401 Unauthorized
+- User.ActivationStatusId: Still 2 (Invited)
+- User.PasswordHash: Still NULL
 
-#### Database Checks
-- [ ] **User:**
-  - ActivationStatusId changed to Active
-  - PasswordHash is set
+### 2. Valid Token (Run Second)
 
----
+**Token:** Generated with `expiryMinutes: 1440` (24 hours)  
+**Request:** Same as above with valid token
 
-### Scenario 2: Expired Token (After 24 Hours)
-
-#### Request
-- Method: POST
-- Endpoint: `/api/user/activate`
-- Body: `{ expired_token, password }`
-
-#### Response Checks
-- [ ] Status code is 400 or 401
-- [ ] Error indicates token expired
-
-#### Database Checks
-- [ ] **User:**
-  - ActivationStatusId still Invited
-  - PasswordHash still null
+**Expected:**
+- Status: 200 OK
+- User.ActivationStatusId: 2 → 3 (Active)
+- User.PasswordHash: Set
+- No UserLoginDetail record (activation ≠ login)
 
 ---
 
-### Scenario 3: Old Token Invalidated by New Token
+## Implementation
 
-#### Request
-- Generate first token
-- Generate second token  
-- Attempt activation with first token
+**Token Generation:**
+```csharp
+var tokenHelper = ApiTestConfig.Instance.GetTokenHelper();
+var token = tokenHelper.GenerateActivationToken(
+    clientIdentifier: "ww7client",
+    staffMemberId: 9205,
+    email: "api.tc25059.activation@activeops.com",
+    securityStamp: "5A6B7C8D-9E0F-1A2B-3C4D-5E6F7A8B9C0D",
+    expiryMinutes: 1440  // or -1500 for expired
+);
+```
 
-#### Response Checks
-- [ ] First token rejected (400/401)
-- [ ] Second token works successfully
+**API Call:**
+```csharp
+await apiHelper.SetAuthTokenAsync(activationToken);
+var response = await apiHelper.PostAsync<object>(
+    "/api/Accounts/activate",
+    new { username = "...", password = "..." });
+```
+
+**Pattern:** Use Pattern 1 (Fixture) - Both scenarios in SetupAsync, run expired first then valid.
 
 ---
 
-## Gap Analysis
+## Database Queries
 
-**Thunderclient Status:** ❌ **Not from Thunderclient - Azure DevOps test case**
+```sql
+-- Check activation status and password
+SELECT Id, ActivationStatusId, PasswordHash FROM [dbo].[User] WHERE Id = 9205
 
-**Context:**
-- This test case is from the Azure DevOps Login-25146 suite
-- Was marked "NOT-UI" during UI test case analysis
-- Recommended for API test suite implementation
-- Does NOT exist in Thunderclient collection
-
-**What Needs to Be Built:**
-- Identify activation endpoint
-- Implement activation token validation tests
-- Implement expiry testing (requires time manipulation strategy)
-- Implement token invalidation testing
-
-**Why This is Different:**
-- Not a Thunderclient migration - this is **net new** test creation
-- Based on Azure requirements, not existing API tests
-- Fills gap in authentication/onboarding flow coverage
-
-**Priority:** 🟡 **Medium** (Priority 3)
-
-**Action Items:**
-- Identify activation endpoint in codebase
-- Choose time manipulation approach (TokenHelper with past expiry recommended)
-- Understand token storage mechanism (JWT vs database table)
+-- Verify no login session created
+SELECT COUNT(*) FROM [dbo].[UserLoginDetail] WHERE UserId = 9205
+```
 
 ---
 
 ## Notes
 
-- User onboarding security test
-- Time-based testing requires strategy decision  
-- Currently untested in any automation (Thunderclient or Cypress)
-- Lower priority than core login/auth flows
+- Token uses JwtActivationKey (`s3cu1tyJwtT0k3nK3ys3cu1tyJwtT0k3C`)
+- Default expiry: 24 hours (1440 minutes)
+- Token in Authorization header, NOT in body
+- SecurityStamp hashed by TokenHelper (PBKDF2 with salt)
+- OneShot: Mark with `[Trait("Category", "OneShot")]`
