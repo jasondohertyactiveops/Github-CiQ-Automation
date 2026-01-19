@@ -14,7 +14,7 @@ public class ApiHelper : IAsyncDisposable
     
     public ApiHelper()
     {
-        _baseUrl = ApiTestConfig.Instance.ApiBaseUrl;
+        _baseUrl = ApiTestConfig.Instance.BaseUrl;
     }
     
     /// <summary>

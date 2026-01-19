@@ -52,7 +52,10 @@ public class TokenRefreshFixture : ApiTestFixture
             new { UserId });
         
         // Step 2: Generate expired access token (expired 5 minutes ago)
-        var tokenHelper = ApiTestConfig.Instance.GetTokenHelper();
+        var tokenHelper = new AO.Automation.Shared.Helpers.TokenHelper(
+            ApiTestConfig.Instance.JwtActivationKey,
+            ApiTestConfig.Instance.JwtResetPasswordKey,
+            ApiTestConfig.Instance.JwtSecurityKey);
         ExpiredAccessToken = tokenHelper.GenerateAccessToken(
             username: loginRequest.Username,
             staffMemberId: userRecord.StaffMemberId,
