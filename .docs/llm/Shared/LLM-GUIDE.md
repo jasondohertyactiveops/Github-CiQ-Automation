@@ -22,6 +22,7 @@
 
 **DON'T:**
 - Use `bash_tool` for file operations on D:\ paths (causes sync issues)
+- Delete files (no delete capability available)
 - Run any commands (dotnet, git, playwright, npm, etc.)
 - Execute tests or builds
 - Perform git operations

@@ -126,6 +126,8 @@ playwright:browser_snapshot
 - `.docs/test-cases/UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`
 - `.docs/test-cases/UI/ClientApp/Login-25146/01-TC25059-EmailLinkExpiry-NOT-UI.md`
 
+**DO NOT create README.md files in test suite folders** - all information should be in individual test case MDs.
+
 ### Required Sections
 1. **Source Analysis** - Azure + Cypress + Current app
 2. **Final Test Specification** - What to test, prerequisites, steps, expected results
