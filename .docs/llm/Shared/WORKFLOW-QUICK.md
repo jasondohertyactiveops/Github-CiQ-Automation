@@ -22,6 +22,77 @@ This is **not** "fetch 10 test cases and auto-generate everything". It's **one t
 
 ---
 
+## Understanding UI vs API Test Split
+
+**CRITICAL:** Most Azure DevOps test cases require BOTH UI and API test coverage.
+
+### The Analysis Process
+
+**Step 1: Analyze Cypress**
+- Check what's currently being tested in Cypress
+- Understand the actual application behavior
+- Identify what needs UI coverage vs API coverage
+
+**Step 2: Split the Testing**
+
+**UI Tests Cover:**
+- User-visible behaviors (forms, grids, navigation)
+- Form validations (required fields, character limits, error messages)
+- Success messages and toasts
+- Grid display and filtering
+- User workflows (navigate → fill form → submit → see result)
+
+**API Tests Cover:**
+- Backend operations (POST, PUT, DELETE, GET)
+- Database persistence checks (verify data actually saved)
+- Business rule validation at API level
+- Response structure and status codes
+- Data integrity after operations
+
+**Ignore (For Now):**
+- Audit logging (separate initiative)
+- Internationalization/French translations (separate initiative)
+
+**Example: TC25074 "Create Workgroups"**
+
+**UI Test Case (`UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`):**
+- Navigate to Departments/Groups/Teams page
+- Fill form with required fields
+- See validation errors for missing fields
+- Submit successfully
+- See success message
+- Verify item appears in grid
+- Search/filter for created item
+
+**API Test Case (`API/ClientAPI/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`):**
+- POST to create Department
+- GET to verify it exists
+- Check database has correct data (persistence check)
+- PUT to update Department
+- Check DB reflects update
+- DELETE Department
+- Check DB confirms deletion
+- Repeat for Workgroup and Team
+
+### Multi-Variant Testing
+
+**For Admin/System Settings tests:** Each test covers ALL 3 entity variants:
+- **Departments** (WorkgroupTypeId = 1)
+- **Groups/Workgroups** (WorkgroupTypeId = 2)  
+- **Teams** (WorkgroupTypeId = 3)
+
+These are the same entity type with different type discriminators.
+
+### Folder Structure
+
+Test cases are organized by type:
+- `UI/ClientApp/{Suite-ID}/` - User interface tests
+- `API/ClientAPI/{Suite-ID}/` - Backend API tests
+
+**Naming:** Same filename in both folders (no -UI or -API suffix needed).
+
+---
+
 ## Step 1: Get Test Case from Azure DevOps
 
 **CRITICAL:** User will provide the specific test case ID to automate. DO NOT use `azureDevOps:search_work_items` to fetch suite contents - this returns hundreds of irrelevant results.
@@ -115,27 +186,53 @@ playwright:browser_snapshot
 
 ---
 
-## Step 5: Create Test Case MD
+## Step 5: Create Test Case MDs (UI + API)
+
+**CRITICAL:** Most test cases require BOTH UI and API test case MDs.
 
 ### Location & Naming
 ```
-.docs/test-cases/{Type}/{App}/{Suite-ID}/{Order}-TC{ID}-{Name}[-Suffix].md
+UI:  .docs/test-cases/UI/ClientApp/{Suite-ID}/{Order}-TC{ID}-{Name}.md
+API: .docs/test-cases/API/ClientAPI/{Suite-ID}/{Order}-TC{ID}-{Name}.md
 ```
 
 **Examples:**
-- `.docs/test-cases/UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`
-- `.docs/test-cases/UI/ClientApp/Login-25146/01-TC25059-EmailLinkExpiry-NOT-UI.md`
+- `UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`
+- `API/ClientAPI/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`
+- `UI/ClientApp/Login-25146/01-TC25059-EmailLinkExpiry-NOT-UI.md` (Pure-UI inappropriate)
 
 **DO NOT create README.md files in test suite folders** - all information should be in individual test case MDs.
 
-### Required Sections
+### Creating Both Variants
+
+**Workflow:**
+1. Create UI test case MD first (user-visible behaviors)
+2. Create API test case MD second (backend operations + DB checks)
+3. Review both together to ensure complete coverage
+4. No duplication - each tests different concerns
+
+**UI Test Case Focus:**
+- Navigation and page display
+- Form interactions and validations
+- Error messages and success toasts
+- Grid filtering and search
+- User workflows
+
+**API Test Case Focus:**
+- HTTP operations (POST, PUT, DELETE, GET)
+- Database persistence verification
+- Response structure validation
+- Business rule enforcement
+- Data integrity checks
+
+### Required Sections (Both UI and API)
 1. **Source Analysis** - Azure + Cypress + Current app
 2. **Final Test Specification** - What to test, prerequisites, steps, expected results
 3. **Data Requirements** - User needs, pre-seeded data with SQL scripts, test data strategy
-4. **Automation Approach** - Pattern (A/C), Page Objects, Locators
+4. **Automation Approach** - Pattern (A/C), Page Objects/API Clients, Locators/Endpoints
 5. **Notes** - Important context
 
-See `UI/TESTCASE_INSTRUCTIONS.md` for template.
+See `.docs/llm/UI/TESTCASE_INSTRUCTIONS.md` and `.docs/llm/API/TESTCASE_INSTRUCTIONS.md` for templates.
 
 ---
 
