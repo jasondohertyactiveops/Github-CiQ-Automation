@@ -1,5 +1,14 @@
 # LLM Instructions
 
+## Quick Start
+
+**Essential reading:**
+1. **WORKFLOW-QUICK.md** - Test generation workflow (Azure DevOps → test code)
+2. **DATA-RULES.md** - Test data self-sufficiency rules
+3. **MCP-TOOLS.md** - Azure DevOps & Playwright MCP commands
+
+---
+
 ## Environment
 - Windows machine
 - All paths use `D:\` format
