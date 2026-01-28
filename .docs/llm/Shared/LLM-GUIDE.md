@@ -14,6 +14,16 @@
 - All paths use `D:\` format
 - Repo root: `D:\ActiveOpsGit\Github-CiQ-Automation`
 
+## Local Test Environment
+**Docker URLs:**
+- Client: http://ww7client.localhost
+- API: http://localhost:8080
+
+**Working Login Credentials:**
+- Username: `TestUser1`
+- Password: `Workware@1`
+- (Has Admin permissions for all Admin/System Settings pages)
+
 ## Your Capabilities
 **DO:**
 - Use `Filesystem:*` tools for all file operations (read, write, edit, create, list, search)
