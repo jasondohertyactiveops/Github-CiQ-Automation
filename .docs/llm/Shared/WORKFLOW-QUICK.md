@@ -22,26 +22,36 @@ This is **not** "fetch 10 test cases and auto-generate everything". It's **one t
 
 ---
 
-## Step 1: Fetch Test Case from Azure DevOps
+## Step 1: Get Test Case from Azure DevOps
 
-### Get Test Suite
-```
-azureDevOps:list_work_items 
-  projectId="Workware 7"
-  queryId=<suite_query_id>
-```
+**CRITICAL:** User will provide the specific test case ID to automate. DO NOT use `azureDevOps:search_work_items` to fetch suite contents - this returns hundreds of irrelevant results.
 
-### Get Specific Test Case
+### When User Says: "Let's automate TC25074 from suite 25155"
+
+**Step 1a - Get the specific test case:**
 ```
-azureDevOps:get_work_item workItemId=25057
+azureDevOps:get_work_item workItemId=25074 expand="all"
 ```
 
-**Capture:**
-- Test case ID (e.g., 25057)
-- Title
-- Suite ID (e.g., Login-25146)
-- Order in suite (1, 2, 7, 12)
+**Step 1b - Get suite info (for naming):**
+```
+azureDevOps:get_work_item workItemId=25155
+```
+
+**Capture from test case:**
+- Test case ID (e.g., 25074)
+- Title (e.g., "User should be able to create workgroups")
 - Steps and expected results
+- Tags (e.g., "Admin and System Settings")
+
+**Capture from suite:**
+- Suite title (e.g., "Admin/System Settings")
+- Use for folder naming: `AdminSystemSettings-25155`
+
+**DO NOT:**
+- Search for all test cases in a suite (user provides specific IDs)
+- Use `azureDevOps:search_work_items` for suite contents
+- Fetch multiple test cases at once (one at a time only)
 
 ---
 
@@ -113,7 +123,7 @@ playwright:browser_snapshot
 ```
 
 **Examples:**
-- `.docs/test-cases/UI/ClientApp/Login-25146/07-TC25057-ValidCredentialsLogin.md`
+- `.docs/test-cases/UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`
 - `.docs/test-cases/UI/ClientApp/Login-25146/01-TC25059-EmailLinkExpiry-NOT-UI.md`
 
 ### Required Sections
@@ -160,8 +170,8 @@ src/AO.Automation.UI.Client/Tests/{Feature}/{Name}.cs
 ```
 
 Match test case MD name (without order prefix and suffix):
-- MD: `07-TC25057-ValidCredentialsLogin.md`
-- Code: `ValidCredentialsLogin.cs`
+- MD: `01-TC25074-CreateWorkgroups.md`
+- Code: `CreateWorkgroups.cs`
 
 ### Template
 ```csharp
@@ -196,7 +206,7 @@ public class {Name} : PlaywrightTest, IClassFixture<BrowserFixture>
 
 ```powershell
 cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation.UI.Client
-dotnet test --filter "FullyQualifiedName~ValidCredentialsLogin"
+dotnet test --filter "FullyQualifiedName~CreateWorkgroups"
 ```
 
 **For OneShot tests:** Recreate database after first run.
@@ -238,14 +248,14 @@ test: automate TC{ID} {title}
 
 ### Naming Pattern
 ```
-Azure TC25057 in suite Login-25146 at position 7
+User provides: "TC25074 from suite 25155, order 1"
   ↓
-07-TC25057-ValidCredentialsLogin.md
+01-TC25074-CreateWorkgroups.md
   ↓
-ValidCredentialsLogin.cs
+CreateWorkgroups.cs
 ```
 
 ### Search/Trace
-- Find by TC ID: Search for `TC25057`
+- Find by TC ID: Search for `TC25074`
 - Find by Azure step: Search for `// AD: Step 2`
-- Find by suite: Search for `[Trait("Suite", "Login-25146")]`
+- Find by suite: Search for `[Trait("Suite", "AdminSystemSettings-25155")]`
