@@ -14,7 +14,7 @@
 
 ## What This Tests
 
-{Clear 1-2 sentence description of what behavior is being verified}
+{Clear 1-2 sentence description of what backend behavior and database state is being verified}
 
 ---
 
@@ -53,10 +53,10 @@
 ## Example: Simplified Test Case
 
 ```markdown
-# TC25057: Valid Login API
+# TC12345: Valid Login API
 
-**Azure Test Case:** 25057  
-**Suite:** Login-25146  
+**Azure Test Case:** 12345  
+**Suite:** Login-12300  
 **Thunderclient:** `client-site-v2.1/01-login/login.json` ✅  
 **Test Users:** 9200-9299 range (active user with roles)
 
@@ -64,7 +64,7 @@
 
 ## What This Tests
 
-User with valid credentials can successfully login via API and receive a valid JWT token with correct database state.
+User with valid credentials can successfully login via API, receive a valid JWT token, and have correct login state recorded in database.
 
 ---
 
@@ -136,4 +136,4 @@ The test case should answer:
 - **Where** is the existing Thunderclient test (if any)?
 - **Which** database tables to verify?
 
-That's it. Everything else is implementation detail.
+**Critical:** API tests are DEEP tests. The key value-add over UI tests is DATABASE VERIFICATION. Every API test must specify which tables/fields to check for persistence.

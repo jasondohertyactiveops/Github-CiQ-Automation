@@ -35,53 +35,46 @@ This is **not** "fetch 10 test cases and auto-generate everything". It's **one t
 
 **Step 2: Split the Testing**
 
-**UI Tests Cover:**
-- User-visible behaviors (forms, grids, navigation)
-- Form validations (required fields, character limits, error messages)
-- Success messages and toasts
+**UI Tests = Shallow (User-Facing Only):**
+- Navigation and page display
+- Form interactions and field validations
+- Error messages and success toasts
 - Grid display and filtering
 - User workflows (navigate → fill form → submit → see result)
+- **NO database checks**
+- **NO backend verification**
 
-**API Tests Cover:**
-- Backend operations (POST, PUT, DELETE, GET)
-- Database persistence checks (verify data actually saved)
-- Business rule validation at API level
+**API Tests = Deep (Backend + Database):**
+- HTTP operations (POST, PUT, DELETE, GET)
 - Response structure and status codes
-- Data integrity after operations
+- **Database persistence verification**
+- Business rule validation at API level
+- Data integrity checks after operations
 
 **Ignore (For Now):**
 - Audit logging (separate initiative)
 - Internationalization/French translations (separate initiative)
 
-**Example: TC25074 "Create Workgroups"**
+**Example: TC12345 "Create Entity"**
 
-**UI Test Case (`UI/ClientApp/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`):**
-- Navigate to Departments/Groups/Teams page
+**UI Test Case (`UI/ClientApp/FeatureArea-12300/01-TC12345-CreateEntity.md`):**
+- Navigate to entity management page
 - Fill form with required fields
-- See validation errors for missing fields
+- See validation errors for missing/invalid fields
 - Submit successfully
 - See success message
 - Verify item appears in grid
 - Search/filter for created item
 
-**API Test Case (`API/ClientAPI/AdminSystemSettings-25155/01-TC25074-CreateWorkgroups.md`):**
-- POST to create Department
-- GET to verify it exists
-- Check database has correct data (persistence check)
-- PUT to update Department
-- Check DB reflects update
-- DELETE Department
-- Check DB confirms deletion
-- Repeat for Workgroup and Team
-
-### Multi-Variant Testing
-
-**For Admin/System Settings tests:** Each test covers ALL 3 entity variants:
-- **Departments** (WorkgroupTypeId = 1)
-- **Groups/Workgroups** (WorkgroupTypeId = 2)  
-- **Teams** (WorkgroupTypeId = 3)
-
-These are the same entity type with different type discriminators.
+**API Test Case (`API/ClientAPI/FeatureArea-12300/01-TC12345-CreateEntity.md`):**
+- POST to create entity
+- Check 201 response with correct structure
+- **Check database table has the record**
+- **Verify all fields persisted correctly**
+- PUT to update entity
+- **Check DB reflects update**
+- DELETE entity
+- **Check DB confirms deletion**
 
 ### Folder Structure
 

@@ -24,25 +24,15 @@ These MD files serve as:
 ```
 .docs/
   test-cases/
-    {SuiteName}-{SuiteID}/
-      {Order}-TC{ID}-{DescriptiveName}.md
-      {Order}-TC{ID}-{DescriptiveName}-NOT-UI.md
-      {Order}-TC{ID}-{DescriptiveName}-TODO.md
+    UI/
+      ClientApp/
+        {SuiteName}-{SuiteID}/
+          {Order}-TC{ID}-{DescriptiveName}.md
+          {Order}-TC{ID}-{DescriptiveName}-NOT-UI.md
+          {Order}-TC{ID}-{DescriptiveName}-TODO.md
 ```
 
 **{Order}** = Two-digit order number from Azure suite (01, 02, 03, etc.)
-
-**Example:**
-```
-.docs/
-  test-cases/
-    Login-25146/
-      01-TC25059-EmailLinkExpiry-NOT-UI.md
-      02-TC25060-TokenRefresh-NOT-UI.md
-      03-TC24154-UsersWithoutEmail-TODO.md
-      07-TC25057-ValidCredentialsLogin.md
-      08-TC25058-InvalidCredentialsLogin.md
-```
 
 ---
 
@@ -122,25 +112,29 @@ Tests that verify user-facing behavior through the UI:
 - Page element visibility
 - User workflows
 - Error message display
+- Success toasts and confirmations
+- Grid display and filtering
+
+**Important:** UI tests are SHALLOW - they verify what the user sees/experiences only. No database checks, no backend verification. Those belong in API tests.
 
 **Examples:**
-- TC25057: Valid credentials login
-- TC25058: Invalid credentials show error
-- TC25061: Password reset workflow
+- User logs in with valid credentials → sees dashboard
+- User submits form with invalid data → sees error message
+- User creates entity → sees success message and entity in grid
 
 ---
 
-### Not-Pure-UI-Appropriate ❌
+**Not-Pure-UI-Appropriate ❌**
 Tests that belong in API/Integration/NFR suites:
 
 **Time-Based:**
 - Requires waiting hours/days
-- Example: TC25059 (24-hour email link expiry)
+- Example: 24-hour token expiry
 
 **Backend Auth:**
 - Tests authentication mechanisms
 - Token management
-- Example: TC25060 (token refresh logic)
+- Example: Token refresh logic
 
 **Email System:**
 - Tests email delivery
@@ -155,7 +149,7 @@ Tests that belong in API/Integration/NFR suites:
 **Backend Business Rules:**
 - Database constraints
 - Business logic validation
-- Example: TC24155 (username uniqueness after deletion)
+- Example: Uniqueness constraints
 
 **Complex System Integration:**
 - Multiple systems coordinating
@@ -164,14 +158,14 @@ Tests that belong in API/Integration/NFR suites:
 
 ---
 
-### Todo-NeedsReview ⚠️
+**Todo-NeedsReview ⚠️**
 Tests that require discussion:
 
 **ComplexWorkflow:**
 - Mix of UI and backend concerns
 - Support App involvement
 - System configuration changes
-- Example: TC24154 (users without email + system config)
+- Example: Users without email requiring system config
 
 **Unclear Scope:**
 - Vague test case descriptions
@@ -227,15 +221,15 @@ Document locators and approaches
 
 ## Example Workflow
 
-**Creating TC25057-ValidCredentialsLogin.md:**
+**Creating a test case for valid login:**
 
 1. **Fetch from Azure:**
    - Title: "User with valid credentials is able to login"
-   - Steps: Vague, just says "User is able to activate... and login"
+   - Steps: Vague, just says "User is able to login"
    - Issue: Not detailed enough
 
 2. **Check Cypress:**
-   - File: `cypress/e2e/Global/LoginPage.cy.js`
+   - File: `cypress/e2e/Feature/Page.cy.js`
    - Test: "should be successful with valid credentials"
    - Actually tests:
      ```javascript
@@ -248,7 +242,7 @@ Document locators and approaches
    - Issues: Uses data-tags, but otherwise good UI test
 
 3. **Explore with PW MCP:**
-   - Navigate to http://ww7client.localhost/
+   - Navigate to page
    - Find: Username field → `Page.GetByRole(AriaRole.Textbox, new() { Name = "Username" })`
    - Find: Password field → `Page.GetByRole(AriaRole.Textbox, new() { Name = "Password" })`
    - Find: Login button → `Page.GetByRole(AriaRole.Button, new() { Name = "Login" })`
@@ -257,7 +251,7 @@ Document locators and approaches
 4. **Synthesize:**
    - Category: Pure-UI-Appropriate ✅
    - Test: Login workflow with valid credentials
-   - Clear UI behavior to verify
+   - Clear UI behavior to verify (user sees dashboard after login)
    - Can use semantic locators (no data-tags needed)
 
 5. **Write MD file** with complete specification
@@ -327,15 +321,15 @@ Use current app elements (no Remember me checkbox)
 
 **Pure-UI-Appropriate tests:**
 - `{Order}-TC{ID}-{DescriptiveName}.md`
-- Example: `07-TC25057-ValidCredentialsLogin.md`
+- Example: `07-TC12345-ValidLogin.md`
 
 **Not Pure UI tests:**
 - `{Order}-TC{ID}-{DescriptiveName}-NOT-UI.md`
-- Example: `01-TC25059-EmailLinkExpiry-NOT-UI.md`
+- Example: `01-TC12346-TokenExpiry-NOT-UI.md`
 
 **Todo/Unclear:**
 - `{Order}-TC{ID}-{DescriptiveName}-TODO.md`
-- Example: `03-TC24154-UsersWithoutEmail-TODO.md`
+- Example: `03-TC12347-ComplexWorkflow-TODO.md`
 
 **{Order}** = Two-digit number (01, 02, 03...) matching position in Azure Test Suite
 
