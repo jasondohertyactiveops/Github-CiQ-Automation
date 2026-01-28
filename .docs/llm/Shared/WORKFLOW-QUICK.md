@@ -45,7 +45,28 @@ azureDevOps:get_work_item workItemId=25057
 
 ---
 
-## Step 2: Explore Current Application (If Needed)
+## Step 2: Check Cypress Legacy Implementation (If Exists)
+
+**Location:** `WW7/Projects/ControliQAutomation/cypress/e2e/`
+
+**What to look for:**
+- Does a test exist for this TC?
+- What does it actually test?
+- What data-tags does it use? (we'll replace with semantic locators)
+- What's missing or wrong?
+
+**Use Filesystem tools:**
+```
+Filesystem:search_files 
+  path="D:\ActiveOpsGit\Automation\WW7\Projects\ControliQAutomation"
+  pattern="*login*.cy.js"
+```
+
+**Cypress is reference only** - we're replacing it with Playwright.
+
+---
+
+## Step 3: Explore Current Application (If Needed)
 
 ### When to use Playwright MCP
 - Cypress uses data-tags (need semantic locators)
@@ -67,7 +88,7 @@ playwright:browser_snapshot
 
 ---
 
-## Step 3: Determine Category
+## Step 4: Determine Category
 
 **Pure-UI-Appropriate?**
 - ✅ Tests user-visible behavior
@@ -84,7 +105,7 @@ playwright:browser_snapshot
 
 ---
 
-## Step 4: Create Test Case MD
+## Step 5: Create Test Case MD
 
 ### Location & Naming
 ```
@@ -105,7 +126,7 @@ See `UI/TESTCASE_INSTRUCTIONS.md` for template.
 
 ---
 
-## Step 5: Identify Data Requirements
+## Step 6: Identify Data Requirements
 
 ### OneShot or Repeatable?
 **OneShot** - Modifies data permanently (activate, change password, lock account)
@@ -131,7 +152,7 @@ See `DATA-RULES.md` for complete rules.
 
 ---
 
-## Step 6: Generate Test Code
+## Step 7: Generate Test Code
 
 ### Location & Naming
 ```
@@ -171,7 +192,7 @@ public class {Name} : PlaywrightTest, IClassFixture<BrowserFixture>
 
 ---
 
-## Step 7: Run & Verify
+## Step 8: Run & Verify
 
 ```powershell
 cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation.UI.Client
@@ -182,7 +203,7 @@ dotnet test --filter "FullyQualifiedName~ValidCredentialsLogin"
 
 ---
 
-## Step 8: Commit
+## Step 9: Commit
 
 ### Two-Repo Strategy
 
