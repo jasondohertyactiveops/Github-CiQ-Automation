@@ -1,5 +1,6 @@
 using AO.Automation.API.Client.Models.Requests.Login;
 using AO.Automation.API.Client.Models.Responses.Login;
+using AO.Automation.Shared.Attributes;
 using Dapper;
 
 namespace AO.Automation.API.Client.Tests.Login25146;
@@ -16,13 +17,10 @@ public class InvalidCredentialsLoginFixture : ApiTestFixture
     }
 }
 
-/// <summary>
-/// Azure Test Case: 25058
-/// Invalid credentials are rejected by API
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("API", "ClientAPI")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25058)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class InvalidCredentialsLogin : IClassFixture<InvalidCredentialsLoginFixture>
 {
     private readonly InvalidCredentialsLoginFixture _fixture;
@@ -33,6 +31,7 @@ public class InvalidCredentialsLogin : IClassFixture<InvalidCredentialsLoginFixt
     }
     
     [Theory]
+    [AzureTestStep(25058, 4)]
     [InlineData("api.tc25058.invalidpw@activeops.com", "WrongPassword@1", 9201)]
     [InlineData("api.tc25058.inactive@activeops.com", "Workware@1", 9202)]
     [InlineData("api.tc25058.noroles@activeops.com", "Workware@1", 9203)]

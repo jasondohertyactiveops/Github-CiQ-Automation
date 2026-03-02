@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using AO.Automation.API.Client.Models.Requests.Login;
 using AO.Automation.API.Client.Models.Responses.Login;
 using AO.Automation.API.Client.Models.Database;
+using AO.Automation.Shared.Attributes;
 using Dapper;
 
 namespace AO.Automation.API.Client.Tests.Login25146;
@@ -42,13 +43,10 @@ public class ValidCredentialsLoginFixture : ApiTestFixture
     }
 }
 
-/// <summary>
-/// Azure Test Case: 25057
-/// User with valid credentials can successfully login via API
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("API", "ClientAPI")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25057)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
 {
     private readonly ValidCredentialsLoginFixture _fixture;
@@ -61,12 +59,14 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     // Response validation tests
     
     [Fact]
+    [AzureTestStep(25057, 1)]
     public void Response_HasSuccessStatusCode()
     {
         Assert.Equal(200, _fixture.LoginStatusCode);
     }
     
     [Fact]
+    [AzureTestStep(25057, 2)]
     public void Response_ContainsToken()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -75,6 +75,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 3)]
     public void Response_ContainsRefreshToken()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -83,6 +84,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 4)]
     public void Response_TokenIsValidJwt()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -95,6 +97,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 5)]
     public void Response_TokenContainsExpectedClaims()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -107,6 +110,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 6)]
     public void Response_TokenExpiryIsReasonable()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -123,6 +127,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 7)]
     public void Response_ContainsUserDetails()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -135,6 +140,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     // Database validation tests
     
     [Fact]
+    [AzureTestStep(25057, 8)]
     public void Database_UserRecordExists()
     {
         Assert.NotNull(_fixture.UserRecord);
@@ -143,6 +149,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 9)]
     public void Database_LoginRecordCreated()
     {
         Assert.NotNull(_fixture.LoginDetailRecord);
@@ -151,6 +158,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 10)]
     public void Database_LoginTimestampIsRecent()
     {
         Assert.NotNull(_fixture.LoginDetailRecord);
@@ -161,6 +169,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 11)]
     public void Database_RefreshTokenMatchesResponse()
     {
         Assert.NotNull(_fixture.LoginResponse);
@@ -169,6 +178,7 @@ public class ValidCredentialsLogin : IClassFixture<ValidCredentialsLoginFixture>
     }
     
     [Fact]
+    [AzureTestStep(25057, 12)]
     public void Database_RefreshTokenExpiryIsReasonable()
     {
         Assert.NotNull(_fixture.LoginDetailRecord);

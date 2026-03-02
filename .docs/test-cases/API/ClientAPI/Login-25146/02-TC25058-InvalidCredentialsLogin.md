@@ -13,62 +13,31 @@ API correctly rejects invalid login attempts (wrong password, inactive users, us
 
 ---
 
-## Test Checklist
+## Test Steps
 
-### Scenario 1: Invalid Password
-
-#### Request
+### Setup (Test Body - per scenario)
 - Method: POST
 - Endpoint: `/api/user/login`
-- Body: `{ clientIdentifier, username, wrong_password }`
+- Body: `{ clientIdentifier, username, password }`
 
-#### Response Checks
-- [ ] Status code is 401
-- [ ] Error message exists
-- [ ] No token returned
-- [ ] Error doesn't reveal if username exists
+### Scenarios
 
-#### Database Checks
-- [ ] **UserLoginDetail:**
-  - No login record created
+Each scenario runs as a separate Theory case. Steps 1-3 are setup (arrange/act), Step 4 is the verification.
 
----
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Prepare credentials for scenario | Setup |
+| 2 | POST to /api/user/login | Setup |
+| 3 | Count login records before attempt | Setup |
+| 4 | Response returns 401, error present, no DB record created | Verify |
 
-### Scenario 2: Inactive User
+### Scenario Data
 
-#### Request
-- Method: POST
-- Endpoint: `/api/user/login`
-- Body: `{ clientIdentifier, username, correct_password }`
-- User state: Inactive (Active = 0)
-
-#### Response Checks
-- [ ] Status code is 401
-- [ ] Error message indicates inactive account
-- [ ] No token returned
-
-#### Database Checks
-- [ ] **UserLoginDetail:**
-  - No login record created
-
----
-
-### Scenario 3: User Without Roles
-
-#### Request
-- Method: POST
-- Endpoint: `/api/user/login`
-- Body: `{ clientIdentifier, username, correct_password }`
-- User state: No role assignments
-
-#### Response Checks
-- [ ] Status code is 401 or 403
-- [ ] Error message indicates missing roles
-- [ ] No token returned
-
-#### Database Checks
-- [ ] **UserLoginDetail:**
-  - No login record created
+| Scenario | Username | Password | User ID | Condition |
+|----------|----------|----------|---------|-----------|
+| Invalid Password | api.tc25058.invalidpw@activeops.com | WrongPassword@1 | 9201 | Wrong password |
+| Inactive User | api.tc25058.inactive@activeops.com | Workware@1 | 9202 | User is inactive |
+| No Roles | api.tc25058.noroles@activeops.com | Workware@1 | 9203 | User has no roles |
 
 ---
 

@@ -4,6 +4,7 @@ using AO.Automation.API.Client.Models.Requests.TokenRefresh;
 using AO.Automation.API.Client.Models.Responses.Login;
 using AO.Automation.API.Client.Models.Responses.TokenRefresh;
 using AO.Automation.API.Client.Models.Database;
+using AO.Automation.Shared.Attributes;
 using Dapper;
 
 namespace AO.Automation.API.Client.Tests.Login25146;
@@ -82,13 +83,10 @@ public class TokenRefreshFixture : ApiTestFixture
     }
 }
 
-/// <summary>
-/// Azure Test Case: 25060
-/// Token refresh allows getting new access token with expired token + valid refresh token
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("API", "ClientAPI")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25060)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class TokenRefresh : IClassFixture<TokenRefreshFixture>
 {
     private readonly TokenRefreshFixture _fixture;
@@ -101,12 +99,14 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     // Response validation tests
     
     [Fact]
+    [AzureTestStep(25060, 6)]
     public void Response_HasSuccessStatusCode()
     {
         Assert.Equal(200, _fixture.RefreshStatusCode);
     }
     
     [Fact]
+    [AzureTestStep(25060, 7)]
     public void Response_ContainsNewToken()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -115,6 +115,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 8)]
     public void Response_ContainsNewRefreshToken()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -123,6 +124,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 9)]
     public void Response_NewTokenIsDifferentFromExpiredToken()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -130,6 +132,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 10)]
     public void Response_NewRefreshTokenIsDifferentFromOldOne()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -138,6 +141,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 11)]
     public void Response_NewTokenIsValidJwt()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -150,6 +154,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 12)]
     public void Response_NewTokenExpiryIsReasonable()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -168,6 +173,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     // Database validation tests
     
     [Fact]
+    [AzureTestStep(25060, 13)]
     public void Database_NewLoginRecordCreatedOrUpdated()
     {
         Assert.NotNull(_fixture.UpdatedLoginRecord);
@@ -175,6 +181,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 14)]
     public void Database_NewRefreshTokenMatchesResponse()
     {
         Assert.NotNull(_fixture.RefreshResponse);
@@ -183,6 +190,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 15)]
     public void Database_NewRefreshTokenIsDifferentFromOldOne()
     {
         Assert.NotNull(_fixture.InitialLoginRecord);
@@ -191,6 +199,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 16)]
     public void Database_NewRefreshTokenExpiryIsReasonable()
     {
         Assert.NotNull(_fixture.UpdatedLoginRecord);
@@ -202,6 +211,7 @@ public class TokenRefresh : IClassFixture<TokenRefreshFixture>
     }
     
     [Fact]
+    [AzureTestStep(25060, 17)]
     public async Task NewToken_CanBeUsedForAuthenticatedRequest()
     {
         Assert.NotNull(_fixture.RefreshResponse);

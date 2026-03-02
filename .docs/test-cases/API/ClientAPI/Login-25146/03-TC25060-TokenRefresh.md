@@ -14,43 +14,44 @@ Token refresh endpoint allows obtaining new access token using expired token + v
 
 ---
 
-## Test Checklist
+## Test Steps
 
-### Initial Login
-- [x] POST /api/user/login with valid credentials
-- [x] Capture access token (30 min expiry)
-- [x] Capture refresh token (90 min expiry)
-- [x] Extract SessionValidationToken from access token for reuse
+### Setup (Fixture)
 
-### Generate Expired Token
-- [x] Use TokenHelper to create expired access token (expired 5 mins ago)
-- [x] Reuse SessionValidationToken from real login (required for validation)
-- [x] Match all claims from real token (username, staffMemberId, clientIdentifier, location)
-
-### Token Refresh Request
-- Method: PUT
-- Endpoint: `/api/user/login`
-- Body: `{ token: expired_token, refreshToken: valid_refresh_token }`
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | POST /api/user/login with valid credentials | Setup |
+| 2 | Capture access token and refresh token | Setup |
+| 3 | Extract SessionValidationToken from access token | Setup |
+| 4 | Generate expired access token using TokenHelper (-5 min) | Setup |
+| 5 | PUT /api/user/login with expired token + valid refresh token | Setup |
 
 ### Response Checks
-- [x] Status code is 200
-- [x] Response contains: token, refreshToken
-- [x] New token is valid JWT (3-part structure)
-- [x] New token is different from expired token
-- [x] New refresh token is different from old refresh token
-- [x] New token expiry is ~30 min from refresh time
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 6 | Status code is 200 | Verify |
+| 7 | Response contains new token | Verify |
+| 8 | Response contains new refreshToken | Verify |
+| 9 | New token is different from expired token | Verify |
+| 10 | New refresh token is different from old refresh token | Verify |
+| 11 | New token is valid JWT format | Verify |
+| 12 | New token expiry is ~30 min from refresh time | Verify |
 
 ### Database Checks
-- [x] **UserLoginDetail:**
-  - Record updated with new refresh token
-  - New RefreshToken matches response
-  - New RefreshToken is different from old one
-  - RefreshTokenExpiry is ~90 min from refresh time
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 13 | Login record created/updated in [UserLoginDetail] | Verify |
+| 14 | New RefreshToken in DB matches response | Verify |
+| 15 | New RefreshToken is different from old one in DB | Verify |
+| 16 | New RefreshTokenExpiry is ~90 min from refresh time | Verify |
 
 ### End-to-End Validation
-- [x] New token can be used for authenticated API requests
-- [x] Tested by calling POST /api/user/logout with new token
-- [x] Returns 204 No Content (token accepted, logout succeeded)
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 17 | New token can authenticate (POST /api/user/logout returns 204) | Verify |
 
 ---
 

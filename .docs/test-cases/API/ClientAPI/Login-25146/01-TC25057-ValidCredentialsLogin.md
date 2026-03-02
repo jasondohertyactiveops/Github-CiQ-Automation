@@ -13,29 +13,34 @@ User with valid credentials can successfully login via API and receive a valid J
 
 ---
 
-## Test Checklist
+## Test Steps
 
-### Request
+### Setup (Fixture)
 - Method: POST
 - Endpoint: `/api/user/login`
 - Body: `{ clientIdentifier, username, password }`
 
 ### Response Checks
-- [ ] Status code is 200
-- [ ] Response contains: token, refreshToken, user object
-- [ ] Token is valid JWT format
-- [ ] Token expiry is reasonable
-- [ ] RefreshToken is valid GUID
-- [ ] User ID matches expected user
-- [ ] Username matches request
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Status code is 200 | Verify |
+| 2 | Response contains token | Verify |
+| 3 | Response contains refreshToken | Verify |
+| 4 | Token is valid JWT format | Verify |
+| 5 | Token contains expected claims (name, ClientIdentifier) | Verify |
+| 6 | Token expiry is ~30 minutes | Verify |
+| 7 | Response contains user details (username, firstName, lastName, location) | Verify |
 
 ### Database Checks
-- [ ] **UserLoginDetail:**
-  - Login record created for test user
-  - LoginDateTime is recent
-  - RefreshToken matches response
-  - RefreshTokenExpiry is reasonable
-  - SessionValidationToken exists
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 8 | User record exists in [User] table | Verify |
+| 9 | Login record created in [UserLoginDetail] | Verify |
+| 10 | Login timestamp is recent (within 30s) | Verify |
+| 11 | RefreshToken in DB matches response | Verify |
+| 12 | RefreshTokenExpiry is ~90 minutes | Verify |
 
 ---
 
