@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 24155  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -36,11 +36,10 @@ Login works correctly when username exists in both deleted and active states.
 If seeding succeeds, database constraint allows duplicate usernames when one is deleted ✅
 
 ### Test Steps
-1. Navigate to login page
-2. Enter username: "duplicate.test@activeops.com"
-3. Enter password: [seeded password]
-4. Click Login
-5. Verify: Redirects to dashboard (login successful)
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Login with username that exists as both deleted and active user, verify redirect to /rtm | Verify |
 
 ### Expected Results
 - Login succeeds

@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 29201  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -47,28 +47,9 @@ This simulates an admin having reset the user's password.
 
 ### Test Steps
 
-**Part 1: Login Triggers Password Change**
-1. Navigate to login page
-2. Enter username: "mustchange.user@activeops.com"
-3. Enter password: "TempPassword@123"
-4. Click Login
-5. Verify: Redirected to Change Password screen (NOT dashboard)
-6. Verify: URL is `/changepassword` or similar
-7. Verify: Username field pre-filled and read-only
-
-**Part 2: Change Password**
-1. Enter current password: "TempPassword@123"
-2. Enter new password (meets requirements)
-3. Confirm new password
-4. Click Submit
-5. Verify: Success message or redirect to login/dashboard
-
-**Part 3: Login with New Password**
-1. If redirected to login, enter username
-2. Enter NEW password
-3. Click Login
-4. Verify: Login successful, dashboard loads
-5. Verify: No redirect to change password (flag cleared)
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Login with temp password, verify redirect to /changepassword, change password, login with new password, verify redirect to /rtm, logout and re-login to confirm flag cleared | Verify |
 
 ### Expected Results
 - User with "must change" flag cannot access app without changing password

@@ -2,8 +2,7 @@
 
 **Azure Test Case ID:** 24166  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
-**Infrastructure Required:** Activation token generation utility
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -63,29 +62,9 @@ User can activate account using activation link and login for the first time.
 
 ### Test Steps
 
-**Part 1: Activation Page with Valid Token**
-1. Navigate to `/activateaccount/{seededToken}`
-2. Verify: Activation form displays
-   - Username pre-filled correctly
-   - New Password field
-   - Confirm New Password field
-   - Submit button
-3. Enter valid password (meets requirements)
-4. Confirm password
-5. Click Submit
-6. Verify: Success message "Your account has been activated successfully"
-7. Click "Go to Login Screen"
-
-**Part 2: First Login After Activation**
-1. Enter activated username
-2. Enter password set during activation
-3. Click Login
-4. Verify: Login successful, dashboard loads
-
-**Part 3: Activation with Invalid Token (Optional)**
-1. Navigate to `/activateaccount/{expiredOrInvalidToken}`
-2. Verify: Error message shown
-3. Verify: Cannot proceed with activation
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Generate activation token, navigate to activation page, verify username pre-filled, set password, submit, verify success, login with new credentials, verify redirect to /rtm | Verify |
 
 ### Expected Results
 - Activation form works with valid token

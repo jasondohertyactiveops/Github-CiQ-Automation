@@ -2,18 +2,15 @@ using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.Shared.Helpers;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC25061: Reset Password from Login Screen
-/// Verifies user can reset password using reset link and login with new password
-/// NOTE: OneShot test - changes User 9006 password permanently. Requires fresh database to re-run.
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25061)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ResetPasswordFromLoginScreen : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public ResetPasswordFromLoginScreen(BrowserFixture browserFixture) : base(browserFixture)
@@ -21,6 +18,8 @@ public class ResetPasswordFromLoginScreen : PlaywrightTest, IClassFixture<Browse
     }
     
     [Fact]
+    [AzureTestStep(25061, 1)]
+    [Trait("Category", "OneShot")]
     public async Task CanResetPasswordAndLoginWithNewPassword()
     {
         // Seeded data: User 9006 (tc25061.reset@activeops.com)

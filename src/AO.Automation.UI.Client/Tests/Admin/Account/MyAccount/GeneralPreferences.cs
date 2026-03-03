@@ -2,18 +2,15 @@ using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
 using AO.Automation.UI.Client.Pages.MyAccount;
 using AO.Automation.UI.Client.Pages.Shared;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Admin.Account.MyAccount;
 
-/// <summary>
-/// TC25688: View/Update General Preferences
-/// Verifies user can change language preference and UI updates accordingly
-/// NOTE: OneShot test - if fails mid-test, user left in French state
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "MyAccount")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25688)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class GeneralPreferences : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public GeneralPreferences(BrowserFixture browserFixture) : base(browserFixture)
@@ -21,6 +18,8 @@ public class GeneralPreferences : PlaywrightTest, IClassFixture<BrowserFixture>
     }
     
     [Fact]
+    [AzureTestStep(25688, 1)]
+    [Trait("Category", "OneShot")]
     public async Task CanChangeLanguagePreferenceToFrenchAndBack()
     {
         // Persona user: automation.teammember2 (dedicated for language testing, no interference)

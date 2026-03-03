@@ -2,8 +2,7 @@
 
 **Azure Test Case ID:** 25061  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
-**Infrastructure Required:** Reset token generation utility
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -54,44 +53,9 @@ User can request password reset and complete the reset workflow from login scree
 
 ### Test Steps
 
-**Part 1: Request Reset**
-1. Navigate to login page
-2. Click "Reset My Password" link
-3. Verify: Request form displays
-   - Title: "Request Password Reset"
-   - Helper text about sending link
-   - Username field
-   - Cancel and Submit buttons
-4. Enter username: "reset.test@activeops.com"
-5. Click Submit
-6. Verify: Confirmation page shows
-   - "Reset Password Email Sent" message
-   - Instructions about checking email
-   - "Go to Login Screen" button
-
-**Part 2: Reset Password Form (using seeded token)**
-1. Navigate to `/resetpassword/{seededToken}`
-2. Verify: Reset form displays
-   - Title: "Reset Your Password"
-   - Password requirements text
-   - New Password field
-   - Confirm New Password field
-   - Cancel and Submit buttons
-
-**Part 3: Password Validation**
-1. Test password too short: Enter "Auto@23" → Verify error
-2. Test no uppercase: Enter "autom@234" → Verify error
-3. Test no symbols: Enter "Automation" → Verify error
-4. Test password mismatch: Enter different passwords → Verify error
-
-**Part 4: Successful Reset**
-1. Enter valid new password (meets all requirements)
-2. Confirm password matches
-3. Click Submit
-4. Verify: Success message "Your password has been reset successfully"
-5. Click "Go to Login Screen"
-6. Login with username and NEW password
-7. Verify: Login successful, dashboard loads
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Generate reset token, navigate to reset page, set new password, submit, verify success, login with new credentials, verify redirect to /rtm | Verify |
 
 ### Expected Results
 - Request form works correctly

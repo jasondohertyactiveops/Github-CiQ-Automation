@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 25058  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -53,29 +53,11 @@ Login fails appropriately with different types of invalid credentials and shows 
 
 ### Test Steps
 
-**Scenario 1: Invalid Username/Password**
-1. Navigate to login page
-2. Enter invalid username
-3. Enter any password
-4. Click Login
-5. Verify: Error message "Sorry, your login was unsuccessful. Please check your login credentials, or follow the reset password link"
-6. Verify: Fields not cleared, login button still enabled
-
-**Scenario 2: No Role Assigned**
-1. Navigate to login page
-2. Enter username: "norole.user@activeops.com"
-3. Enter valid password
-4. Click Login
-5. Verify: Error message "You don't have any roles assigned, please contact your administrator."
-6. Verify: User not logged in
-
-**Scenario 3: Inactive Account**
-1. Navigate to login page
-2. Enter username: "inactive.user@activeops.com"
-3. Enter valid password
-4. Click Login
-5. Verify: Error message [TBD - need to determine actual message]
-6. Verify: User not logged in
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Invalid username/password: login rejected with error message, stays on login page | Verify |
+| 2 | No role assigned: login rejected with roles error message, stays on login page | Verify |
+| 3 | Inactive account: login rejected with error message, stays on login page | Verify |
 
 ### Expected Results
 - Each scenario shows appropriate error message

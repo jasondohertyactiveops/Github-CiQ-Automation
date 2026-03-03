@@ -1,16 +1,15 @@
 using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC24155: Username Reuse After Deletion
-/// Verifies user can login with username that was previously used by deleted user
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(24155)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class UsernameReuseAfterDeletion : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public UsernameReuseAfterDeletion(BrowserFixture browserFixture) : base(browserFixture)
@@ -18,6 +17,7 @@ public class UsernameReuseAfterDeletion : PlaywrightTest, IClassFixture<BrowserF
     }
     
     [Fact]
+    [AzureTestStep(24155, 1)]
     public async Task CanLoginWithUsernameAfterDeletionAndRecreation()
     {
         // Seeded data: tc24155.duplicate@activeops.com exists twice (User 9001 deleted, User 9002 active)

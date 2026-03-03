@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 25057  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -41,12 +41,10 @@ User can successfully login with valid credentials and access the application.
 - Has role/permissions assigned
 
 ### Test Steps
-1. Navigate to login page
-2. Enter valid username
-3. Enter valid password
-4. Click Login button
-5. Verify: Redirected to dashboard/home page
-6. Verify: User successfully authenticated (check URL or dashboard element)
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Navigate to login, enter valid credentials, submit, verify redirect to /rtm | Verify |
 
 ### Expected Results
 - Login succeeds

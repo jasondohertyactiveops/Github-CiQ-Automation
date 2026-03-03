@@ -1,18 +1,15 @@
 using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC29201: Reset Password from Staff Setup (Forced Change)
-/// Verifies user is forced to change password after admin reset and can successfully login
-/// NOTE: OneShot test - changes User 9008 password permanently. Requires fresh database to re-run.
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(29201)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ForcedPasswordChange : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public ForcedPasswordChange(BrowserFixture browserFixture) : base(browserFixture)
@@ -20,6 +17,8 @@ public class ForcedPasswordChange : PlaywrightTest, IClassFixture<BrowserFixture
     }
     
     [Fact]
+    [AzureTestStep(29201, 1)]
+    [Trait("Category", "OneShot")]
     public async Task UserForcedToChangePasswordAfterAdminReset()
     {
         // Seeded user: tc29201.mustchange@activeops.com (User 9008)

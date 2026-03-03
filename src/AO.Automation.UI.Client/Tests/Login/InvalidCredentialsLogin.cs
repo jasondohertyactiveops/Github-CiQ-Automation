@@ -1,17 +1,14 @@
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC25058: Invalid Credentials Login
-/// Verifies login fails appropriately with invalid credentials and shows correct error messages
-/// NOTE: OneShot tests - lock accounts on failure. Requires fresh database to re-run.
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25058)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class InvalidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public InvalidCredentialsLogin(BrowserFixture browserFixture) : base(browserFixture)
@@ -19,6 +16,8 @@ public class InvalidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixt
     }
     
     [Fact]
+    [AzureTestStep(25058, 1)]
+    [Trait("Category", "OneShot")]
     public async Task InvalidUsernamePasswordShowsError()
     {
         // AD: Step 1 - Attempt login with invalid credentials
@@ -37,6 +36,8 @@ public class InvalidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixt
     }
     
     [Fact]
+    [AzureTestStep(25058, 2)]
+    [Trait("Category", "OneShot")]
     public async Task NoRoleAssignedShowsError()
     {
         // Seeded user: tc25058.norole@activeops.com (User 9004) - has account but no roles
@@ -56,6 +57,8 @@ public class InvalidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixt
     }
     
     [Fact]
+    [AzureTestStep(25058, 3)]
+    [Trait("Category", "OneShot")]
     public async Task InactiveAccountShowsError()
     {
         // Seeded user: tc25058.inactive@activeops.com (User 9005) - account is inactive

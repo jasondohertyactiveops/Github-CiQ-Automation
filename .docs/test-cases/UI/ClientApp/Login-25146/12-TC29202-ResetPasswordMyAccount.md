@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 29202  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -46,40 +46,9 @@ User can change their own password from My Account page and login with new crede
 
 ### Test Steps
 
-**Part 1: Access Password Change Dialog**
-1. Login as seeded user
-2. Navigate to My Account (via user menu)
-3. Click "Change Password" button in Login Details card
-4. Verify: Dialog appears with title "Change Your Password"
-5. Verify: Dialog shows:
-   - Password requirements text
-   - Current Password field
-   - New Password field
-   - Confirm New Password field
-   - Cancel and Submit buttons
-
-**Part 2: Password Validation**
-1. Test password too short → Verify validation error
-2. Test missing uppercase → Verify validation error
-3. Test missing symbols → Verify validation error
-4. Test password mismatch → Verify error message
-5. Test same as current → Verify error message
-
-**Part 3: Successful Password Change**
-1. Enter current password: "CurrentPass@123"
-2. Enter new password: "NewPassword@456" (meets requirements)
-3. Confirm new password: "NewPassword@456"
-4. Click Submit
-5. Verify: Success message "Password Successfully Changed"
-6. Verify: Dialog closes
-
-**Part 4: Login with New Password**
-1. Logout
-2. Navigate to login page
-3. Enter username: "passwordchange.user@activeops.com"
-4. Enter NEW password: "NewPassword@456"
-5. Click Login
-6. Verify: Login successful, dashboard loads
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Login, navigate to My Account, open Change Password dialog, change password, verify success, logout, login with new password, verify redirect to /rtm | Verify |
 
 ### Expected Results
 - Password change dialog accessible and functional

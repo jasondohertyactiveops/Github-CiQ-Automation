@@ -1,7 +1,7 @@
 using System.Reflection;
 using AO.Automation.Shared.Attributes;
 
-namespace AO.Automation.API.Client.Tests.Conventions;
+namespace AO.Automation.UI.Client.Tests.Conventions;
 
 [Trait("Category", "Convention")]
 public class RequireAzureTestCaseAttribute

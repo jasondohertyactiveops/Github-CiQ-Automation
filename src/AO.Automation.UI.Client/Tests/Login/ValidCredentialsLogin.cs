@@ -1,16 +1,15 @@
 using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC25057: Valid Credentials Login
-/// Verifies user can successfully login with valid credentials and access the application
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25057)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ValidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public ValidCredentialsLogin(BrowserFixture browserFixture) : base(browserFixture)
@@ -18,6 +17,7 @@ public class ValidCredentialsLogin : PlaywrightTest, IClassFixture<BrowserFixtur
     }
     
     [Fact]
+    [AzureTestStep(25057, 1)]
     public async Task CanLoginWithValidCredentials()
     {
         // Persona user: automation.teammember1 (User 9100)

@@ -3,18 +3,15 @@ using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
 using AO.Automation.UI.Client.Pages.MyAccount;
 using AO.Automation.UI.Client.Pages.Shared;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Admin.Account.MyAccount;
 
-/// <summary>
-/// TC29202: Reset Password from My Account Page
-/// Verifies user can change their own password from My Account and login with new credentials
-/// NOTE: OneShot test - changes User 9007 password permanently. Requires fresh database to re-run.
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "MyAccount")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(29202)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ChangePasswordFromMyAccount : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public ChangePasswordFromMyAccount(BrowserFixture browserFixture) : base(browserFixture)
@@ -22,6 +19,8 @@ public class ChangePasswordFromMyAccount : PlaywrightTest, IClassFixture<Browser
     }
     
     [Fact]
+    [AzureTestStep(29202, 1)]
+    [Trait("Category", "OneShot")]
     public async Task CanChangePasswordAndLoginWithNewPassword()
     {
         // Seeded user: tc29202.passwordchange@activeops.com (User 9007)

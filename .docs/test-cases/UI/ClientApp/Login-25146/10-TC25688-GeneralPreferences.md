@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 25688  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -46,19 +46,9 @@ User can change language preference and UI labels update accordingly.
 
 ### Test Steps
 
-1. Login as seeded user
-2. Navigate to My Account
-3. Click General Preferences tab
-4. Verify: Language dropdown exists
-5. Select "French (Canada)" from language dropdown
-6. Wait for preference to save
-7. Verify: Labels on My Account page change to French (spot check):
-   - Tab: "Détails du compte" (Account Details)
-   - Tab: "Préférences générales" (General Preferences)
-   - Card: "Détails de l'employé" (Employee Details)
-   - Card: "Informations de connexion" (Login Details)
-8. Change language back to "English (United Kingdom)"
-9. Verify: Labels return to English
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Login, navigate to My Account, General Preferences tab, change to French, verify French labels, change back to English, verify English labels restored | Verify |
 
 ### Expected Results
 - Language dropdown accessible and functional

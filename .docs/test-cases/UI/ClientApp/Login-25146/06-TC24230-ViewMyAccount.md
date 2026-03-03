@@ -2,7 +2,7 @@
 
 **Azure Test Case ID:** 24230  
 **Suite:** Login-25146  
-**Category:** ✅ Pure-UI-Appropriate  
+**Plan:** Smoke, Regression  
 
 ---
 
@@ -47,32 +47,11 @@ User can navigate to My Account page and view their personal information correct
 
 ### Test Steps
 
-**Step 1: User Menu Verification**
-1. Login as seeded user
-2. Verify user icon shows initials (derived from first/last name)
-3. Click user icon
-4. Verify dropdown shows:
-   - Full name (first + middle + last)
-   - Email address
-   - "My Account" option
-   - "Logout" option
-
-**Step 2: My Account Page Navigation**
-1. Click "My Account" from dropdown
-2. Verify page title shows full name
-
-**Step 3: Employee Details Card**
-1. Verify card displays:
-   - User Type: Administrator
-   - Employment Type: Full-time
-   - Ref. ID: [matches seeded data]
-   - Location: [matches seeded timezone]
-
-**Step 4: Login Details Card**
-1. Verify card displays:
-   - Username: [matches seeded username]
-   - Password: [hidden/masked]
-   - "Change Password" button (enabled)
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Login, verify user menu initials, open dropdown, verify name and email | Verify |
+| 2 | Navigate to My Account, verify page title, user type, employment type, ref ID, location | Verify |
+| 3 | Verify Login Details card: username displayed, Change Password button enabled | Verify |
 
 ### Expected Results
 - All user information matches seeded data

@@ -2,16 +2,15 @@ using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.UI.Client.Pages.Login;
 using AO.Automation.UI.Client.Pages.MyAccount;
 using AO.Automation.UI.Client.Pages.Shared;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Admin.Account.MyAccount;
 
-/// <summary>
-/// TC24230: View My Account Page
-/// Verifies My Account page displays correct personal information for logged-in user
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "MyAccount")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(24230)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public ViewMyAccountDetails(BrowserFixture browserFixture) : base(browserFixture)
@@ -19,6 +18,7 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
     }
     
     [Fact]
+    [AzureTestStep(24230, 1)]
     public async Task UserMenuShowsCorrectDetails()
     {
         // Persona user: automation.teammember1 (User 9100)
@@ -45,6 +45,7 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
     }
     
     [Fact]
+    [AzureTestStep(24230, 2)]
     public async Task MyAccountPageShowsCorrectEmployeeDetails()
     {
         // AD: Step 1 - Login and navigate to My Account
@@ -75,6 +76,7 @@ public class ViewMyAccountDetails : PlaywrightTest, IClassFixture<BrowserFixture
     }
     
     [Fact]
+    [AzureTestStep(24230, 3)]
     public async Task MyAccountPageShowsCorrectLoginDetails()
     {
         // AD: Step 1 - Login and navigate to My Account

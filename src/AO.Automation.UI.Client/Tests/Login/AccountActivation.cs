@@ -2,18 +2,15 @@ using System.Text.RegularExpressions;
 using AO.Automation.UI.Client.BaseClasses;
 using AO.Automation.Shared.Helpers;
 using AO.Automation.UI.Client.Pages.Login;
+using AO.Automation.Shared.Attributes;
 using Microsoft.Playwright;
 
 namespace AO.Automation.UI.Client.Tests.Login;
 
-/// <summary>
-/// TC24166: Account Activation
-/// Verifies user can activate account using activation link and login for first time
-/// NOTE: One-shot test - activates User 9003 permanently. Requires fresh database to re-run.
-/// </summary>
-[Trait("Suite", "Login-25146")]
-[Trait("Feature", "Login")]
-[Trait("Category", "OneShot")]
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(24166)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class AccountActivation : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     public AccountActivation(BrowserFixture browserFixture) : base(browserFixture)
@@ -21,6 +18,8 @@ public class AccountActivation : PlaywrightTest, IClassFixture<BrowserFixture>
     }
     
     [Fact]
+    [AzureTestStep(24166, 1)]
+    [Trait("Category", "OneShot")]
     public async Task CanActivateAccountAndLoginForFirstTime()
     {
         // Seeded data: User 9003 in "Invited" status (ActivationStatusId = 2)
