@@ -235,7 +235,8 @@ dotnet test
 
 **After running OneShot tests:**
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 
@@ -270,7 +271,7 @@ cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
 ### Commands
 **Full suite:**
 ```powershell
-cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation.API.Client
+cd src/AO.Automation.API.Client
 dotnet test
 ```
 
@@ -287,7 +288,8 @@ dotnet test --filter "API=ClientAPI"
 ### Database Recreation
 Same as UI tests - requires fresh database:
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 

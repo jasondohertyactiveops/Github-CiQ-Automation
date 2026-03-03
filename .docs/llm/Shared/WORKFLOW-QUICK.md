@@ -132,7 +132,7 @@ azureDevOps:get_work_item workItemId=25155
 **Use Filesystem tools:**
 ```
 Filesystem:search_files 
-  path="D:\ActiveOpsGit\Automation\WW7\Projects\ControliQAutomation"
+  path="{WW7_REPO}/Projects/ControliQAutomation"
   pattern="*login*.cy.js"
 ```
 
@@ -335,7 +335,8 @@ Location: `WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automa
 
 Then recreate database:
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 
@@ -359,37 +360,36 @@ Match test case MD name (without order prefix and suffix):
 
 ### Template
 ```csharp
-/// <summary>
-/// TC{ID}: {Title}
-/// </summary>
-[Trait("Suite", "{Suite}-{ID}")]
-[Trait("Feature", "{Feature}")]
-[Trait("Category", "OneShot")]  // If applicable
+[AzureTestSuite({SuiteID})] // {SuiteName}
+[AzureTestCase({TestCaseID})]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
 public class {Name} : PlaywrightTest, IClassFixture<BrowserFixture>
 {
     [Fact]
+    [AzureTestStep({TestCaseID}, 1)]
+    [Trait("Category", "OneShot")]  // If applicable, method level only
     public async Task {MethodName}()
     {
         // Persona user: {username} (User {ID})
-        // AD: Step 1 - {Description}
-        
-        // Implementation with step comments
+        // Implementation
     }
 }
 ```
 
 ### Traceability Elements
-- Class comment: `/// TC25057:`
-- Trait: `[Trait("Suite", "Login-25146")]`
-- User comment: `// Persona user: ... (User 9100)`
-- Step comments: `// AD: Step 1 -`, `// AD: Step 2 -`
+- Suite: `[AzureTestSuite(25146)]` on class
+- Case: `[AzureTestCase(25057)]` on class
+- Plan: `[AzureTestPlan("Smoke")]` on class
+- Step: `[AzureTestStep(25057, 1)]` on method
+- OneShot: `[Trait("Category", "OneShot")]` on method only
 
 ---
 
 ## Step 8: Run & Verify
 
 ```powershell
-cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation.UI.Client
+cd src/AO.Automation.UI.Client
 dotnet test --filter "FullyQualifiedName~CreateWorkgroups"
 ```
 
@@ -440,6 +440,7 @@ CreateWorkgroups.cs
 ```
 
 ### Search/Trace
-- Find by TC ID: Search for `TC25074`
-- Find by Azure step: Search for `// AD: Step 2`
-- Find by suite: Search for `[Trait("Suite", "AdminSystemSettings-25155")]`
+- Find by TC ID: Search for `AzureTestCase(25074)`
+- Find by step: Search for `AzureTestStep(25074, 2)`
+- Find by suite: Search for `AzureTestSuite(25155)`
+- Filter pipeline: `dotnet test --filter "Plan=Smoke"` or `dotnet test --filter "Suite=25146"`

@@ -11,8 +11,7 @@
 
 ## Environment
 - Windows machine
-- All paths use `D:\` format
-- Repo root: `D:\ActiveOpsGit\Github-CiQ-Automation`
+- All paths relative to repo root
 
 ## Local Test Environment
 **Docker URLs:**

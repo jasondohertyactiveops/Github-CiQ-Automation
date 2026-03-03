@@ -432,7 +432,8 @@ dotnet test
 
 **Database Reset:**
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 

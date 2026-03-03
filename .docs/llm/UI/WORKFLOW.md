@@ -55,7 +55,7 @@ Ready for you to run: dotnet test --filter "Feature=Login"
 #### Step 4: You Run the Test
 **You do:**
 ```bash
-cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation
+cd src/AO.Automation.UI.Client
 dotnet test --filter "Feature=Login"
 ```
 
@@ -348,7 +348,8 @@ And we're off! 🚀
 - Last run included OneShot tests
 
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 

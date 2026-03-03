@@ -302,7 +302,7 @@ Ready to begin project setup and test implementation.
 
 ### Repository Layout
 ```
-D:\ActiveOpsGit\Github-CiQ-Automation
+.
 ├── .docs/
 │   └── llm/
 │       ├── LLM-GUIDE.md              ← LLM capabilities and limitations
@@ -414,7 +414,8 @@ D:\ActiveOpsGit\Github-CiQ-Automation
 
 **Command:**
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 

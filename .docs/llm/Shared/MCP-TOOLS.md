@@ -88,13 +88,13 @@ WW7/Projects/ControliQAutomation/cypress/e2e/
 ### Check Schema
 ```
 Filesystem:read_text_file
-  path="D:\ActiveOpsGit\WW7\ww7-api\AO.WW\AO.WW.DB.Client\Tables\User.sql"
+  path="{WW7_REPO}/ww7-api/AO.WW/AO.WW.DB.Client/Tables/User.sql"
 ```
 
 ### View Seeding Script
 ```
 Filesystem:read_text_file
-  path="D:\ActiveOpsGit\WW7\ww7-api\AO.WW\AO.WW.DB.Client\Scripts\InitialClientSeeding\Automation\UiTestUsers.sql"
+  path="{WW7_REPO}/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/UiTestUsers.sql"
 ```
 
 ---
