@@ -87,7 +87,7 @@ Quick reference for test user IDs and test case mappings.
 - TC25059: Email Link Expiry ❌ (NOT-UI)
 - TC25060: Token Refresh ❌ (NOT-UI)
 
-**Status: 9/12 UI tests automated (75%)**
+**Status: 9/12 UI tests automated (75%)** — all use `[AzureTestSuite]`/`[AzureTestCase]`/`[AzureTestStep]`/`[AzureTestPlan]` attributes
 
 **API Test Coverage (Login-25146):**
 - TC25057 API: Valid Credentials Login (User 9200) 📝 (documented)
@@ -95,7 +95,7 @@ Quick reference for test user IDs and test case mappings.
 - TC25060 API: Token Refresh (User 9204) 📝 (documented)
 - TC25059 API: Email Link Expiry (User 9205) ⚠️ (TODO - needs time manipulation approach)
 
-**Status: 3/4 API tests documented (75%), 0 implemented yet**
+**Status: 3/4 API tests implemented** — all use `[AzureTestSuite]`/`[AzureTestCase]`/`[AzureTestStep]`/`[AzureTestPlan]` attributes
 
 ## Special User Configurations
 
@@ -121,7 +121,7 @@ Quick reference for test user IDs and test case mappings.
 
 ## Token Generation
 
-**TokenHelper location:** `src/AO.Automation/Helpers/TokenHelper.cs`
+**TokenHelper location:** `src/AO.Automation.Shared/Helpers/TokenHelper.cs`
 
 **Activation token:**
 ```csharp
@@ -147,13 +147,14 @@ var token = tokenHelper.GenerateResetPasswordToken(
 
 **Recreate database:**
 ```powershell
-cd D:\ActiveOpsGit\WW7\misc\Docker\local-environment
+# In the WW7 repo
+cd misc/Docker/local-environment
 .\recreate-databases.ps1
 ```
 
 **Run all tests:**
 ```powershell
-cd D:\ActiveOpsGit\Github-CiQ-Automation\src\AO.Automation
+cd src/AO.Automation.UI.Client
 dotnet test
 ```
 

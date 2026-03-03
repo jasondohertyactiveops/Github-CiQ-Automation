@@ -1,139 +1,77 @@
-# API Test Case Template (Simplified)
+# API Test Case Documentation
 
-## Format
+Test case MD files specify what to test and which database tables to verify. They are specifications, not implementation guides.
+
+---
+
+## Folder Structure
+```
+.docs/test-cases/API/ClientAPI/{SuiteName}-{SuiteID}/
+  {Order}-TC{ID}-{DescriptiveName}.md
+```
+
+## Template
 
 ```markdown
 # TC{ID}: {Title}
 
 **Azure Test Case:** {ID}  
 **Suite:** {SuiteName}-{SuiteID}  
+**Plan:** Smoke, Regression  
 **Thunderclient:** `collections/{path}` OR ❌ Not implemented  
-**Test Users:** {Range description, e.g., "9200-9299 range (active user with roles)"}
+**Test Users:** {Range, e.g., "9200-9299 range (active user with roles)"}
 
 ---
 
 ## What This Tests
 
-{Clear 1-2 sentence description of what backend behavior and database state is being verified}
+{1-2 sentence description of backend behavior and database state being verified}
 
 ---
 
-## Test Checklist
+## Test Steps
 
-### Request
+### Setup (Fixture)
 - Method: POST/GET/PUT/DELETE
 - Endpoint: `/api/path`
-- Body: { key fields }
+- Body: `{ key fields }`
 
 ### Response Checks
-- [ ] Status code is correct
-- [ ] Response contains required fields
-- [ ] Field values are valid/expected
-- [ ] Data types are correct
+
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | Status code is 200 | Verify |
+| 2 | Response contains token | Verify |
 
 ### Database Checks
-- [ ] **TableName:**
-  - Record created/updated/deleted as expected
-  - Key fields match response
-  - Timestamps are recent
-  - Related records updated correctly
 
-### Edge Cases (if applicable)
-- [ ] {High-level edge case description}
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 3 | Login record created in [UserLoginDetail] | Verify |
+| 4 | RefreshToken in DB matches response | Verify |
 
 ---
 
 ## Notes
-
-{Any important context, gotchas, or related information}
+{Important context, gaps from Thunderclient}
 ```
 
----
+## Step Table Rules
 
-## Example: Simplified Test Case
+Every step with `Verify` coverage must map to an `[AzureTestStep(tcId, stepNumber)]` in code. Setup steps (API calls, DB queries for fixture) are described in the Setup section, not numbered as Verify steps.
 
-```markdown
-# TC12345: Valid Login API
+## Key Principle
 
-**Azure Test Case:** 12345  
-**Suite:** Login-12300  
-**Thunderclient:** `client-site-v2.1/01-login/login.json` ✅  
-**Test Users:** 9200-9299 range (active user with roles)
+API tests are DEEP tests. The value-add over UI tests is **database verification**. Every state-changing API test must specify which tables/fields to check for persistence.
 
----
+## What to Include
+- What needs to be tested (brief)
+- Thunderclient location (if exists)
+- Which database tables to verify
+- Gap analysis (what's missing from Thunderclient)
 
-## What This Tests
-
-User with valid credentials can successfully login via API, receive a valid JWT token, and have correct login state recorded in database.
-
----
-
-## Test Checklist
-
-### Request
-- Method: POST
-- Endpoint: `/api/user/login`
-- Body: { clientIdentifier, username, password }
-
-### Response Checks
-- [ ] Status code is 200
-- [ ] Response contains: token, refreshToken, user object
-- [ ] Token is valid JWT format
-- [ ] Token expiry is reasonable
-- [ ] RefreshToken is valid GUID
-- [ ] User ID matches expected user
-- [ ] Username matches request
-
-### Database Checks
-- [ ] **UserLoginDetail:**
-  - Login record created for test user
-  - LoginDateTime is recent
-  - RefreshToken matches response
-  - RefreshTokenExpiry is reasonable
-  - SessionValidationToken exists
-
----
-
-## Notes
-
-- Token can be reused for authenticated API calls
-- Complements UI login test (different layer)
-```
-
----
-
-## What to Remove
-
-❌ **Remove:**
-- Detailed "Source Analysis" sections
-- Step-by-step "Arrange-Act-Assert" implementation
-- Specific code examples (Assert.Equal, etc.)
-- "Automation Approach" sections with tool choices
-- Long explanations and rationale
-- "Quality Checklist" sections
-
-✅ **Keep:**
-- What the test verifies (brief, clear)
-- Thunderclient location
-- Simple checklist of what to verify
-- Database tables/fields to check with SQL hints
-- Brief notes for important context only
-
----
-
-## Rationale
-
-**Test cases are specifications, not implementation guides.**
-
-The developer writing the test will:
-- Have access to Thunderclient collections for request/response examples
-- Know how to use xUnit Assert
-- Know how to use DatabaseHelper and ApiHelper
-- Make implementation decisions based on the framework
-
-The test case should answer:
-- **What** needs to be tested?
-- **Where** is the existing Thunderclient test (if any)?
-- **Which** database tables to verify?
-
-**Critical:** API tests are DEEP tests. The key value-add over UI tests is DATABASE VERIFICATION. Every API test must specify which tables/fields to check for persistence.
+## What to Omit
+- Detailed Arrange-Act-Assert implementation
+- Specific code examples
+- Tool choices and rationale
+- Quality checklists

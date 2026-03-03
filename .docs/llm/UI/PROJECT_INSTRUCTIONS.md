@@ -1,437 +1,91 @@
-# Project Instructions
+# UI Test Project
 
-## Overview
-Automated Playwright .NET tests generated from Azure DevOps manual test cases.
-
-## Goals
-- Convert manual test cases from Azure Test Plans into Playwright .NET (C#) tests
-- Maintain traceability between automated tests and Azure test cases
-- Create reliable, maintainable, readable tests
-- Enable iterative generation and healing of tests
-
----
-
-## Questions & Decisions
-
-### Test Framework & Structure
-**Q1: Test framework - NUnit, xUnit, or MSTest?**
-- Answer: **xUnit** - Already used at ActiveOps, modern design, better parallelization, cleaner setup/teardown via constructor/Dispose
-
-**Q2: Page Object Model - Use POM (Pages folder with page classes) or simpler direct test approach?**
-- Answer: **Yes, use Page Object Model**
-  - Essential for hundreds of tests and complex screens
-  - Pages represent UI pages/sections as classes
-  - Components represent reusable custom controls (grids, widgets)
-  - Improves maintainability, readability, and reusability
-  - Start with Pages, add Components as patterns emerge
-
-**Q3: Test organization - How should tests be grouped? By Azure Test Suite? By feature? Flat structure?**
-- Answer: **By Feature/Module** with xUnit traits for filtering
-  - Structure: `/Tests/Login`, `/Tests/CapacityPlanning`, `/Tests/ManageData`, etc.
-  - Use `[Trait]` attributes for cross-cutting concerns:
-    - `[Trait("Suite", "Login-25146")]` - Links to Azure Test Suite ID
-    - `[Trait("Feature", "Login")]` - Feature area
-    - `[Trait("TestType", "NotUIAppropriate")]` - For tests not suitable for UI automation
-    - `[Trait("Reason", "TimeBased")]` - Why not UI appropriate (TimeBased, EmailSystem, BackgroundJob, etc.)
-  - Enables running: `dotnet test --filter "Suite=Login-25146"` or `--filter "Feature=Login"`
-  - Find non-UI tests: `dotnet test --filter "TestType=NotUIAppropriate" --list-tests`
-
-### Naming Conventions
-**Q4: Test class names - How should they relate to Azure test case IDs?**
-- Answer: **Descriptive names without "Tests" suffix**
-  - Example: `LoginScreenValidation.cs` (not `LoginScreenValidationTests.cs`)
-  - Entire codebase is tests, so "Tests" suffix is redundant
-  - Azure Test Case ID referenced in XML summary comment only:
-    ```csharp
-    /// <summary>
-    /// Azure Test Case: 2813
-    /// Verify that the Login screen shows as expected
-    /// </summary>
-    ```
-  - Do NOT use `[Trait("TestCase", "2813")]` - creates useless filtering (all IDs unique)
-  - Use `[Trait("Suite", "Login-25146")]` to identify which test suite the test belongs to
-
-**Q5: Test method names - Mirror Azure test case titles exactly, or C#-friendly sanitized versions?**
-- Answer: **C#-friendly sanitized (PascalCase)**
-  - Remove unnecessary words: "Verify that", "Check that", "Ensure"
-  - Example: Azure title "Verify that the Login screen shows as expected" → `LoginScreenShowsAsExpected()`
-  - Follow .NET naming conventions
-  - Still traceable via Azure ID in class comment
-  - **Step Traceability:** Use standardized comments to link code to Azure test steps:
-    ```csharp
-    [Fact]
-    public async Task UsernameFieldIsEmpty()
-    {
-        // AD: Step 2 - Check username field
-        var field = Page.GetByLabel("Username");
-        await Expect(field).ToBeEmptyAsync();
-    }
-    ```
-  - Format: `// AD: Step X - Brief summary (max 5 words)`
-  - "AD" = Azure DevOps
-  - Enables searching for specific steps: Search `// AD: Step 2` finds all Step 2 implementations 
-
-### Azure DevOps Integration
-**Q6: Linking - Should test classes/methods include attributes or comments with the Azure test case ID?**
-- Answer: **XML summary comment only**
-  - Azure Test Case ID and title in class-level XML comment (already decided in Q4)
-  - No additional attributes or inline comments needed
-  - Traceability maintained via PR links to Azure test case work items
-  - Example: PR automating TC2813 links to work item #2813 in Azure DevOps
-
-**Q7: Traceability - Any specific format for linking back to Azure?**
-- Answer: **Via Pull Requests**
-  - Link PRs to test case work items when automating tests
-  - Azure DevOps tracks: "Test case #2813 automated in PR #456"
-  - No need for elaborate linking mechanisms in code 
-
-### Authentication & Data
-**Q8: Does your app require login? Need reusable auth state?**
-- Answer: **Yes, reusable auth state (Option A)**
-  - Two authentication methods to test: Username/Password and Microsoft SSO
-  - Save auth state once per user type, reuse across all tests (fast, reliable)
-  - Create separate auth state files per test user: `auth-admin.json`, `auth-readonly.json`, etc.
-  - Seeded test users with known permission profiles in specific workgroups
-  - Workgroup switching is a UI action (testable feature)
-  - Tests use appropriate auth state based on permissions needed
-
-**Q9: Test data - Hardcoded, config files, or pulled from somewhere?**
-- Answer: **Pre-seeded database with known IDs**
-  - Fresh database created from seed script before each test run
-  - Seed script uses identity insert OFF to set specific, known IDs
-  - Tests reference known entities by ID/name from seeded data
-  - CRUD tests create NEW entities, functional tests use EXISTING seeded entities
-  - **NO database interrogation in UI tests:**
-    - UI tests only interact via UI
-    - Backend/database verification handled by API test suite
-    - No cleanup needed (fresh DB each run)
-  - **Configuration via appsettings.json:**
-    - `appsettings.json` - Base/shared config
-    - `appsettings.Development.json` - Local dev environment
-    - `appsettings.Test.json` - Test environment
-    - `appsettings.Staging.json` - Staging environment
-    - Contains: Base URL, test credentials, environment-specific settings
-    - Use standard .NET `ConfigurationBuilder` approach 
-
-### Playwright Specifics
-**Q10: Locator preference - `page.GetByRole()` style, `data-testid`, CSS selectors, or mixed approach?**
-- Answer: **Semantic locators first (prioritized hierarchy)**
-  - **Primary: Semantic locators** (GetByRole, GetByLabel, GetByText, GetByPlaceholder)
-    - Tests what users see/interact with
-    - Tests accessibility at the same time
-    - More resilient to UI changes
-    - Playwright's recommended best practice
-  - **Secondary: CSS selectors** (for complex grids, dynamic lists, custom components)
-    - Use when semantic locators aren't sufficient
-    - Target stable structural elements
-  - **Last resort: Test IDs** (data-testid)
-    - Avoid polluting codebase with test-specific attributes
-    - Only use when absolutely necessary
-  - Example hierarchy:
-    ```csharp
-    // Try this first
-    await Page.GetByRole(AriaRole.Button, new() { Name = "Login" }).ClickAsync();
-    
-    // Then this if needed
-    await Page.Locator(".capacity-grid .row[data-id='123']").ClickAsync();
-    
-    // Avoid this unless no other option
-    await Page.GetByTestId("complex-widget").ClickAsync();
-    ``` 
-
-**Q11: Execution mode - Headless by default, or headed for debugging?**
-- Answer: **Headless by default, with easy toggle for debugging**
-  - Headless in CI/CD pipelines (fast, no UI overhead)
-  - Headed mode available for local debugging (watch tests execute)
-  - Configure via environment variable or Playwright config
-  - Example: `var headless = Environment.GetEnvironmentVariable("CI") != null;`
-  - Can use `slowMo` option in headed mode to slow down execution for debugging 
-
-**Q12: Failure artifacts - Screenshots/traces on failure? Video recording?**
-- Answer: **Screenshots + Traces on failure (Videos on demand)**
-  - **Screenshots:** Always capture on test failure
-    - Small file size, shows final state
-    - Quick debugging for simple issues
-  - **Traces:** Capture on failure (or always in CI)
-    - Full execution recording (DOM snapshots, network, console logs)
-    - Opens in Playwright Trace Viewer for detailed debugging
-    - Larger files but invaluable for complex failures
-  - **Videos:** Only when explicitly needed, not by default
-    - Large file size
-    - Useful for demos or complex scenario debugging
-    - Can be enabled on-demand for specific test runs
-  - Artifacts stored in test-results directory 
-
-### Application Details
-**Q13: App URL - What's the base URL of the SaaS app?**
-- Answer: **Environment-specific URLs (to be configured)**
-  - Structure: `https://{client-subdomain}.{environment}.controliq.com`
-  - Test client will be created specifically for automation
-  - URLs configured per environment in appsettings files:
-    - `appsettings.Development.json` - Local dev environment
-    - `appsettings.Test.json` - Test environment  
-    - `appsettings.Staging.json` - Staging environment
-  - Exact URLs: TBD (pending test client creation and local environment setup) 
-
-**Q14: App technology - Any specific details (SPAs, iframes, shadow DOM, etc.)?**
-- Answer: **React SPA with SignalR for real-time features**
-  - **React/Redux frontend:** Single Page Application (SPA)
-    - URL changes without full page reloads
-    - Playwright handles SPA navigation well by default
-  - **SignalR:** Used for chatbot and real-time notifications
-    - Tests may need to wait for SignalR notifications to appear
-    - Use appropriate Playwright waits for dynamic updates
-  - **SSO redirects:** Standard OAuth flows (EntraID, Ping, Okta)
-    - Nothing out of the ordinary
-  - **No Shadow DOM:** Standard DOM access, no special handling needed
-  - **Future iframes:** Potential for embedded reporting content
-    - Not currently used, handle when needed 
-
-### Folder Structure
-**Q15: Test organization - Flat `/Tests` folder, or organize by Test Plan/Suite/Feature?**
-- Answer: **Organize by Feature/Module** (as decided in Q3)
-  - Structure:
-    ```
-    /Tests
-      /Login
-      /CapacityPlanning
-      /ManageData
-      /Teams
-      /Forecasting
-      /Reporting
-    ```
-  - Overlapping concerns may require flexibility:
-    - Create `/Shared` or `/Integration` for cross-feature tests if needed
-    - Adjust structure as patterns emerge
-    - Pragmatic approach over rigid organization 
-
-**Q16: Additional folders needed - Helpers? Fixtures? Utilities?**
-- Answer: **Start with essential folders, expand as needed**
-  - Initial structure:
-    ```
-    /src/PlaywrightTests
-      /Tests         ← Test classes organized by feature
-      /Pages         ← Page Object Model classes
-      /Components    ← Reusable UI components (grids, widgets)
-      /Helpers       ← Utility functions, auth helpers, data generators
-      /Fixtures      ← Saved auth states (auth-admin.json, etc.)
-      /Config        ← Configuration classes (appsettings reader)
-    ```
-  - Pragmatic approach: Add more as patterns emerge
-  - Structure may expand based on actual needs (likely will need more) 
-
----
-
-## Test Structure Patterns
-
-### Pattern Selection (Hybrid Approach)
-Choose the appropriate pattern based on test type:
-
-**Pattern A: Single Comprehensive Test**
-Use for workflow tests with dependent steps.
-```csharp
-[Fact]
-public async Task CanCreateTeamAndAssignStaff()
-{
-    await Page.GotoAsync("https://app.controliq.com");
-    // Create team
-    // Assign staff
-    // Verify results
-    // All steps in sequence, dependent on each other
-}
-```
-- ✅ Use when: Steps depend on previous steps, workflow testing, state matters
-- ✅ Example: Login → Navigate → Edit → Save → Verify
-
-**Pattern C: Multiple Tests with Shared Setup**
-Use for pure validation tests with independent checks.
-```csharp
-public class LoginScreenValidation : PlaywrightTest, IAsyncLifetime
-{
-    public async Task InitializeAsync()
-    {
-        await Page.GotoAsync("https://app.controliq.com");
-    }
-    
-    [Fact] public async Task CoreElementsPresent() { /* check elements */ }
-    [Fact] public async Task StylingCorrect() { /* check styling */ }
-}
-```
-- ✅ Use when: Pure validation (no state changes), independent assertions, element checking
-- ✅ Example: Checking login page has correct elements, styling, behavior
-- ⚠️ Note: xUnit runs tests in unpredictable order - use `[Collection("Sequential")]` if order matters
-
-**When in doubt:** Start with Pattern A, refactor to Pattern C if test becomes unwieldy.
-
-## Test Data Strategy
-
-### Pre-Seeded Database Approach
-- Fresh database seeded from script before test run
-- Known, deterministic starting state
-- Tests are independent and can run in any order
-- Each feature area tests against pre-seeded data (teams, staff, roles, etc.)
-- CRUD operations create NEW entities for testing
-- Functional tests use EXISTING pre-seeded entities
-
-**Benefits:**
-- ✅ No test pollution or interference
-- ✅ Easy debugging (same data every time)
-- ✅ Tests can run in parallel
-- ✅ Can test specific areas without running setup tests first
-- ✅ Example: Test Manage Data without running Teams CRUD tests first
-
-**Out of Scope for UI Testing:**
-- Background schedulers and async jobs
-- Database triggers and stored procedures
-- System integration tests (better suited for API test suite)
-- Complex time-based workflows requiring waiting for scheduled tasks
-
-## Final Decisions
-**All questions answered: Q1-Q16 ✅**
-
-Ready to begin project setup and test implementation.
-
-### Additional Documentation
-- **WORKFLOW.md** - How to work together (fetch → generate → run → fix → commit cycle)
-- **PATTERNS.md** - Code examples and reference implementations
-- **RATIONALE.md** - Why we made these decisions (for consistency and future decisions)
-
----
+## Tech Stack
+- **.NET 10** / **C#** / **xUnit** / **Playwright for .NET**
+- Page Object Model in `Pages/`, reusable components in `Components/`
+- Shared utilities in `AO.Automation.Shared` (TokenHelper, config, attributes)
 
 ## Project Structure
-
-### Repository Layout
 ```
-.
-├── .docs/
-│   └── llm/
-│       ├── LLM-GUIDE.md              ← LLM capabilities and limitations
-│       ├── PROJECT_INSTRUCTIONS.md    ← This file
-│       ├── WORKFLOW.md                ← Collaboration workflow
-│       ├── PATTERNS.md                ← Code examples
-│       └── RATIONALE.md               ← Decision explanations
-├── .gitignore
-├── README.md
-└── src/
-    ├── AO.Automation.sln              ← Solution file
-    └── AO.Automation/                 ← Test project
-        ├── BaseClasses/               ← Base test classes
-        │   └── PlaywrightTest.cs      ← Abstract base for all tests
-        ├── Tests/                     ← Test classes by feature
-        │   ├── Login/
-        │   │   └── LoginScreenValidation.cs
-        │   ├── CapacityPlanning/
-        │   ├── ManageData/
-        │   ├── Teams/
-        │   └── .../
-        ├── Pages/                     ← Page Object Model classes
-        │   └── LoginPage.cs
-        ├── Components/                ← Reusable UI components
-        ├── Helpers/                   ← Utility functions
-        ├── Fixtures/                  ← Auth states, test data
-        ├── Config/                    ← Configuration classes
-        │   └── TestConfig.cs
-        ├── Usings.cs                  ← Global using statements
-        ├── appsettings.json           ← Base config
-        ├── appsettings.Local.json     ← Local containerized environment
-        ├── appsettings.Development.json  ← Dev environment
-        ├── appsettings.Test.json      ← Test environment
-        └── AO.Automation.csproj       ← Project file
+src/AO.Automation.UI.Client/
+  BaseClasses/        PlaywrightTest, BrowserFixture
+  Config/             TestConfig (appsettings reader)
+  Pages/              Page Object Model classes
+    Login/            LoginPage, ActivationPage, ResetPasswordPage
+    MyAccount/        MyAccountPage, ChangePasswordDialog, GeneralPreferencesTab
+    Shared/           UserMenuComponent
+  Components/         Reusable UI components (grids, widgets)
+  Tests/              Test classes by feature
+    Login/            Login suite tests
+    Admin/            Admin area tests
+    Conventions/      Convention enforcement tests
 ```
 
-### Namespace Structure
-- **AO.Automation** - Root namespace
-- **AO.Automation.BaseClasses** - Base test classes
-- **AO.Automation.Config** - Configuration classes
-- **AO.Automation.Pages** - Page Object Model classes
-- **AO.Automation.Components** - Reusable UI components
-- **AO.Automation.Helpers** - Helper and utility classes
-- **AO.Automation.Tests.{Feature}** - Test classes grouped by feature
-  - Example: AO.Automation.Tests.Login
-  - Example: AO.Automation.Tests.CapacityPlanning
+## Key Decisions
 
-### Technology Stack
-- **.NET 10**
-- **xUnit** - Test framework
-- **Playwright for .NET** - Browser automation
-- **C#** - Programming language
+**Locators:** Semantic first (GetByRole, GetByLabel, GetByText), CSS second, test IDs last resort. No `data-testid` pollution in production code.
 
-### Key Principles
-1. **Pre-seeded database** - Fresh, deterministic test data
-2. **Reusable auth state** - Fast authentication
-3. **Page Object Model** - Maintainable test structure
-4. **Feature-based organization** - Tests grouped by functionality
-5. **Semantic locators first** - Resilient, accessible selectors
-6. **No database interrogation** - UI tests via UI only
-7. **Independent tests** - Can run in any order, in parallel
+**Auth:** Reusable auth state via BrowserFixture. Each test gets isolated Context and Page. Login tests test login directly; everything else starts authenticated.
 
-### Next Steps
-1. ✅ Create .NET test project structure
-2. ✅ Configure Playwright
-3. ✅ Set up authentication helpers
-4. ✅ Create first Page Object (LoginPage)
-5. ✅ Automate first test case (TC2813) - 8 tests passing
-6. ✅ Continue automating test cases
-7. ✅ Expand to more features
+**Data:** Pre-seeded database with known users/data. UI tests don't query the database — that's the API test suite's job. UI tests verify what the user sees.
 
----
+**Patterns:**
+- **Pattern A (Workflow):** Single test method with dependent steps. Use for: login → navigate → edit → save → verify.
+- **Pattern C (Validation):** Multiple test methods with shared fixture setup. Use for: independent checks on the same page.
 
-## Current Project State
+**Out of scope for UI tests:** Background schedulers, database triggers, time-based workflows, performance testing, security testing. These belong in API/integration suites.
 
-### Test Coverage
-**Login Suite (Login-25146): 11/12 tests (92%)**
-- 15 test methods total (some tests split into multiple methods)
-- 8 OneShot tests (require fresh database)
-- 7 Repeatable tests (can run without fresh DB)
+## Traceability Attributes
 
-### Seeding Strategy (Implemented)
-**Reserved ID Range:** 9000-9999 for automation test users
+Class level (this order):
+```csharp
+[AzureTestSuite(25146)] // Login
+[AzureTestCase(25057)]
+[AzureTestPlan("Smoke")]
+[AzureTestPlan("Regression")]
+```
 
-**User Types:**
-- **Test-specific users (9000+):** OneShot scenarios, edge cases
-- **Reusable users (9100+):** General-purpose, shared across tests
+Method level:
+```csharp
+[Fact]
+[AzureTestStep(25057, 1)]
+[Trait("Category", "OneShot")]  // method level only, if applicable
+```
 
-**Standard password:** `Workware@1` for all automation users
+Convention tests in `Tests/Conventions/` enforce all of these — missing attributes fail the build.
 
-**Complete user index maintained in:**
-`WW7/ww7-api/AO.WW/AO.WW.DB.Client/Scripts/InitialClientSeeding/Automation/AutomationTestUsers.sql`
+## Test Execution
 
-### Token Infrastructure (Implemented)
-**TokenHelper utility:**
-- Generates JWT tokens at test runtime (no 24-hour expiry issues)
-- Supports activation and reset password tokens
-- Uses PBKDF2 hashing to match backend
-- Located: `src/AO.Automation/Helpers/TokenHelper.cs`
-
-### Test Execution
-**Full suite:** `dotnet test` (~30 seconds, requires fresh DB)
-**Quick iterations:** `dotnet test --filter "Category!=OneShot"` (~15 seconds)
-
-**Database recreation required for:**
-- OneShot tests (consume users permanently)
-- Seeding script changes
-- Before commits/CI runs
-
-**Command:**
 ```powershell
-# In the WW7 repo
-cd misc/Docker/local-environment
-.\recreate-databases.ps1
+# Full suite (requires fresh DB)
+cd src/AO.Automation.UI.Client
+dotnet test
+
+# Skip OneShot during development
+dotnet test --filter "Category!=OneShot"
+
+# By plan, suite, or test case
+dotnet test --filter "Plan=Smoke"
+dotnet test --filter "Suite=25146"
+dotnet test --filter "TC=25057"
+
+# Convention tests only
+dotnet test --filter "Category=Convention"
 ```
 
-### Page Object Structure (Current)
-**Flat structure in `/Pages`:**
-- LoginPage, ActivationPage, ResetPasswordPage
-- MyAccountPage, ChangePasswordDialog, GeneralPreferencesTab
-- UserMenuComponent
+## Test Users
+- **9000-9099:** OneShot users (single execution)
+- **9100-9199:** Repeatable users (can run multiple times)
+- All use password `Workware@1` unless noted
+- See `SEEDING-REFERENCE.md` for complete registry
 
-**Under consideration:** Organize by feature (Login/, MyAccount/, Shared/)
+## Local Environment
+- Client: http://ww7client.localhost
+- Headless by default, headed for debugging
+- Screenshots + traces on failure, videos on demand
 
-### Key Infrastructure Solved
-- ✅ Nginx SPA routing (eliminates 404s on direct navigation)
-- ✅ FakeTime clock synchronization (auto-fixes in start scripts)
-- ✅ RTM "Select Your Activity" dialog auto-close
-- ✅ Runtime token generation
-- ✅ PBKDF2 SecurityStamp hashing
-- ✅ Languages permission (117) added to Role 1
-- ✅ OneShot vs Repeatable categorization
+## Related Docs
+- `PATTERNS.md` — Code examples and reference implementations
+- `RATIONALE.md` — Why we made these decisions
+- `Shared/WORKFLOW-QUICK.md` — Test generation workflow
+- `Shared/DATA-RULES.md` — Test data self-sufficiency rules

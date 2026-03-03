@@ -1,336 +1,71 @@
-# Test Case Documentation Instructions
+# UI Test Case Documentation
 
-This document explains how to create comprehensive test case markdown files that serve as the source of truth for automation.
-
----
-
-## Purpose
-
-Test case MD files combine information from three sources to create a clear, actionable specification:
-1. **Azure DevOps Test Cases** - Official requirements
-2. **Existing Cypress Code** - What's actually being tested
-3. **Playwright MCP Exploration** - Current app behavior
-
-These MD files serve as:
-- Source of truth for automation
-- Gap analysis (what Cypress tests vs what Azure says)
-- Reviewable specs before writing code
-- Potential updates to Azure test cases later
+Test case MD files are the source of truth for automation, combining Azure DevOps test cases, Cypress legacy code, and current app behavior.
 
 ---
 
 ## Folder Structure
-
 ```
-.docs/
-  test-cases/
-    UI/
-      ClientApp/
-        {SuiteName}-{SuiteID}/
-          {Order}-TC{ID}-{DescriptiveName}.md
-          {Order}-TC{ID}-{DescriptiveName}-NOT-UI.md
-          {Order}-TC{ID}-{DescriptiveName}-TODO.md
+.docs/test-cases/UI/ClientApp/{SuiteName}-{SuiteID}/
+  {Order}-TC{ID}-{DescriptiveName}.md
+  {Order}-TC{ID}-{DescriptiveName}-NOT-UI.md
+  {Order}-TC{ID}-{DescriptiveName}-TODO.md
 ```
 
-**{Order}** = Two-digit order number from Azure suite (01, 02, 03, etc.)
-
----
-
-## Test Case Template
+## Template
 
 ```markdown
 # TC{ID}: {Title}
 
-**Azure Test Case ID:** {ID}
-**Suite:** {SuiteName}-{SuiteID}
-**Category:** [Pure-UI-Appropriate | Not-Pure-UI-Appropriate | Todo-NeedsReview]
-**Reason (if Not-UI):** [TimeBased | BackendAuth | EmailSystem | NFR | BackendBusinessRule | ComplexWorkflow]
+**Azure Test Case ID:** {ID}  
+**Suite:** {SuiteName}-{SuiteID}  
+**Plan:** Smoke, Regression  
 
 ---
 
 ## Source Analysis
 
-### Azure Test Case
-- **Title:** [from Azure]
-- **Steps:** [list Azure steps]
-- **Expected Results:** [from Azure]
-- **Issues:** [vague, incomplete, outdated, etc.]
-
-### Cypress Implementation
-- **File:** `path/to/cypress/file.cy.js`
-- **Test Name:** "should do something"
-- **What It Actually Tests:** [describe what Cypress code does]
-- **Issues:** [uses data-tags, database queries, tests backend, etc.]
-
-### Playwright MCP Exploration
-- **Page URL:** http://ww7client.localhost/...
-- **Elements Found:** [list relevant elements and locators]
-- **Interactions:** [what can be tested via UI]
+**Azure Test Case:** {Steps and expected results from Azure}
+**Cypress:** {File path, what it tests, issues}
+**Current App:** {What Playwright MCP found}
 
 ---
 
-## Final Test Specification
+## What This Tests
 
-### What This Test Should Verify
-[Clear description of what UI behavior we're testing]
+{1-2 sentence description}
 
-### Prerequisites
-- [Seeded data requirements]
-- [User permissions needed]
-- [Environment state required]
+---
 
-### Test Steps
-1. [Step 1 with expected result]
-2. [Step 2 with expected result]
-3. [Step 3 with expected result]
+## Test Steps
 
-### Expected Results
-- [What user sees/experiences]
-- [Success criteria]
+### Setup (Fixture/Test Body)
+- {Describe arrange/act setup}
 
-### Automation Approach
-- **Pattern:** [Pattern A: Workflow | Pattern C: Validation]
-- **Page Objects Needed:** [LoginPage, DashboardPage, etc.]
-- **Locators:** [Key elements and how to find them]
-- **Waits/Timing:** [Special considerations]
+| Step | Description | Coverage |
+|------|-------------|----------|
+| 1 | {What this step verifies} | Verify |
+| 2 | {What this step verifies} | Verify |
 
 ---
 
 ## Notes
-[Any additional context, edge cases, or considerations]
+{Important context, edge cases}
 ```
 
----
+## Step Table Rules
 
-## Categories Explained
+Every step with `Verify` coverage must map to an `[AzureTestStep(tcId, stepNumber)]` in code. Steps that are arrange/act (navigate, fill form, submit) are documented as Setup in the fixture/test body section, not numbered as Verify steps.
 
-### Pure-UI-Appropriate ✅
-Tests that verify user-facing behavior through the UI:
-- Login/logout workflows
-- Navigation
-- Form validation and CRUD operations
-- Page element visibility
-- User workflows
-- Error message display
-- Success toasts and confirmations
-- Grid display and filtering
+## Categories
 
-**Important:** UI tests are SHALLOW - they verify what the user sees/experiences only. No database checks, no backend verification. Those belong in API tests.
+**Pure-UI-Appropriate:** Tests user-visible behavior (login, navigation, form validation, CRUD workflows, error messages, grid display). UI tests are shallow — verify what the user sees, no database checks.
 
-**Examples:**
-- User logs in with valid credentials → sees dashboard
-- User submits form with invalid data → sees error message
-- User creates entity → sees success message and entity in grid
+**Not-Pure-UI (suffix -NOT-UI):** Time-based, backend auth, email system, NFR, backend business rules. Document reason in file.
 
----
+**Needs Review (suffix -TODO):** Unclear scope, complex workflow, needs discussion.
 
-**Not-Pure-UI-Appropriate ❌**
-Tests that belong in API/Integration/NFR suites:
-
-**Time-Based:**
-- Requires waiting hours/days
-- Example: 24-hour token expiry
-
-**Backend Auth:**
-- Tests authentication mechanisms
-- Token management
-- Example: Token refresh logic
-
-**Email System:**
-- Tests email delivery
-- Email templates
-- Link generation
-
-**NFR (Non-Functional Requirements):**
-- Performance testing
-- Load testing
-- Security testing
-
-**Backend Business Rules:**
-- Database constraints
-- Business logic validation
-- Example: Uniqueness constraints
-
-**Complex System Integration:**
-- Multiple systems coordinating
-- Background jobs/schedulers
-- Cross-service workflows
-
----
-
-**Todo-NeedsReview ⚠️**
-Tests that require discussion:
-
-**ComplexWorkflow:**
-- Mix of UI and backend concerns
-- Support App involvement
-- System configuration changes
-- Example: Users without email requiring system config
-
-**Unclear Scope:**
-- Vague test case descriptions
-- No clear UI verification point
-- Might be better suited elsewhere
-
----
-
-## How to Create a Test Case MD File
-
-### Step 1: Fetch Azure Test Case
-```
-Use Azure DevOps MCP to get the test case details
-Document: ID, title, steps, expected results
-Note any issues with the Azure test case (vague, incomplete, etc.)
-```
-
-### Step 2: Find Corresponding Cypress Code
-```
-Search Cypress codebase for related test
-Document: file path, test name, what it actually does
-Note: data-tags used, database queries, what's really being tested
-Identify any issues (testing wrong layer, etc.)
-```
-
-### Step 3: Explore with Playwright MCP
-```
-Navigate to relevant page
-Identify elements (without data-tags)
-Test interactions
-Document: semantic locators, page behavior, current state of app
-```
-
-### Step 4: Synthesize and Categorize
-```
-Compare all three sources
-Identify gaps and conflicts
-Decide: Pure UI appropriate or not?
-If Not Pure UI: Document reason clearly
-If Pure UI: Write clear specification for automation
-If unclear: Mark as Todo-NeedsReview with questions
-```
-
-### Step 5: Write MD File
-```
-Follow template format
-Be specific and actionable
-Include all source references
-Document locators and approaches
-```
-
----
-
-## Example Workflow
-
-**Creating a test case for valid login:**
-
-1. **Fetch from Azure:**
-   - Title: "User with valid credentials is able to login"
-   - Steps: Vague, just says "User is able to login"
-   - Issue: Not detailed enough
-
-2. **Check Cypress:**
-   - File: `cypress/e2e/Feature/Page.cy.js`
-   - Test: "should be successful with valid credentials"
-   - Actually tests:
-     ```javascript
-     cy.get('[data-tag="username"]').type(username);
-     cy.get('[data-tag="password"]').type(password);
-     cy.get('[data-tag="submit-btn"]').click();
-     cy.wait("@postLogin");
-     cy.Logout();
-     ```
-   - Issues: Uses data-tags, but otherwise good UI test
-
-3. **Explore with PW MCP:**
-   - Navigate to page
-   - Find: Username field → `Page.GetByRole(AriaRole.Textbox, new() { Name = "Username" })`
-   - Find: Password field → `Page.GetByRole(AriaRole.Textbox, new() { Name = "Password" })`
-   - Find: Login button → `Page.GetByRole(AriaRole.Button, new() { Name = "Login" })`
-   - Interaction works as expected
-
-4. **Synthesize:**
-   - Category: Pure-UI-Appropriate ✅
-   - Test: Login workflow with valid credentials
-   - Clear UI behavior to verify (user sees dashboard after login)
-   - Can use semantic locators (no data-tags needed)
-
-5. **Write MD file** with complete specification
-
----
-
-## Quality Checklist
-
-Before finalizing a test case MD file:
-
-- [ ] Category is accurate (UI vs Not-UI vs Todo)
-- [ ] If Not-UI, reason is clearly documented
-- [ ] Azure test case details captured
-- [ ] Cypress implementation analyzed and referenced
-- [ ] Current app explored with PW MCP
-- [ ] All three sources reconciled
-- [ ] Conflicts/gaps identified
-- [ ] Steps are clear and actionable
-- [ ] Prerequisites identified
-- [ ] Expected results defined
-- [ ] Locators documented (semantic, no data-tags)
-- [ ] Pattern choice justified (A vs C)
-- [ ] Any special considerations noted
-
----
-
-## When Sources Conflict
-
-**Priority order:**
-1. **Current app reality** (PW MCP) - What actually exists NOW
-2. **Cypress code** - What's actually being tested (even if wrong layer)
-3. **Azure test case** - Original intent (often vague or outdated)
-
-**Example conflict:**
-- **Azure:** "Check login page shows correctly"
-- **Cypress:** Tests database queries, French translation, AND login
-- **PW MCP:** Shows current page structure, no "Remember me" checkbox
-
-**Resolution in MD file:**
-```markdown
-## Source Conflicts
-
-**Azure says:** Check login page elements
-**Cypress does:** Tests login + database + translation (over-scoped)
-**Current app has:** No "Remember me" checkbox (removed?)
-
-**Decision:** Test login functionality only (ignore database/translation)
-Use current app elements (no Remember me checkbox)
-```
-
----
-
-## Tips for Success
-
-1. **Be honest about conflicts** - Don't paper over gaps between sources
-2. **Question everything** - Just because Cypress tests it doesn't mean it's right
-3. **Focus on UI behavior** - If a user can't see/do it, it's not a UI test
-4. **Document unknowns** - Use Todo category liberally
-5. **Reference all sources** - Makes review and updates easier
-6. **Be specific about locators** - Future automation depends on this
-
----
-
-## File Naming Conventions
-
-**Format:** `{Order}-TC{ID}-{DescriptiveName}[-Suffix].md`
-
-**Pure-UI-Appropriate tests:**
-- `{Order}-TC{ID}-{DescriptiveName}.md`
-- Example: `07-TC12345-ValidLogin.md`
-
-**Not Pure UI tests:**
-- `{Order}-TC{ID}-{DescriptiveName}-NOT-UI.md`
-- Example: `01-TC12346-TokenExpiry-NOT-UI.md`
-
-**Todo/Unclear:**
-- `{Order}-TC{ID}-{DescriptiveName}-TODO.md`
-- Example: `03-TC12347-ComplexWorkflow-TODO.md`
-
-**{Order}** = Two-digit number (01, 02, 03...) matching position in Azure Test Suite
-
-This keeps files in suite order and makes it easy to see which test cases are documented.
+## Source Priority When Conflicts Exist
+1. **Current app** (Playwright MCP) — what actually exists now
+2. **Cypress code** — what's actually being tested
+3. **Azure test case** — original intent (often vague/outdated)
